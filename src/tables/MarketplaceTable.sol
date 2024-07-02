@@ -26,7 +26,8 @@ contract MarketplaceTable is ERC721Holder, Ownable {
                 "image text,"
                 "teamId integer,"
                 "price integer,"
-                "currency text",
+                "currency text,"
+                "shipping text",
                 _TABLE_PREFIX
             )
         );
@@ -37,7 +38,7 @@ contract MarketplaceTable is ERC721Holder, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory title, string memory description, string memory image, uint256 teamId, uint256 price, string memory currency) external {
+    function insertIntoTable(string memory title, string memory description, string memory image, uint256 teamId, uint256 price, string memory currency, string memory shipping) external {
         require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
         string memory setters = string.concat(
                 Strings.toString(currId), // Convert to a string
@@ -52,7 +53,9 @@ contract MarketplaceTable is ERC721Holder, Ownable {
                 ",",
                 Strings.toString(price), // Wrap strings in single quotes with the `quote` method
                 ",",
-                SQLHelpers.quote(currency) // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(currency), // Wrap strings in single quotes with the `quote` method
+                ",",
+                SQLHelpers.quote(shipping) // Wrap strings in single quotes with the `quote` method
         );
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
@@ -60,7 +63,7 @@ contract MarketplaceTable is ERC721Holder, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,description,image,teamId,price,currency",
+                "id,title,description,image,teamId,price,currency,shipping",
                 setters
             )
         );
@@ -68,7 +71,7 @@ contract MarketplaceTable is ERC721Holder, Ownable {
         currId += 1;
     }
 
-    function updateTable(uint256 id, string memory title, string memory description, string memory image, uint256 teamId, uint256 price, string memory currency) external {
+    function updateTable(uint256 id, string memory title, string memory description, string memory image, uint256 teamId, uint256 price, string memory currency, string memory shipping) external {
         
         require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
         require (idToTeamId[id] == teamId, "You can only update a marketplace listing by your team");
@@ -84,7 +87,9 @@ contract MarketplaceTable is ERC721Holder, Ownable {
             ",price=",
             Strings.toString(price),
             ",currency=",
-            SQLHelpers.quote(currency)
+            SQLHelpers.quote(currency),
+            ",shipping=",
+            SQLHelpers.quote(shipping)
         );
         // Specify filters for which row to update
         string memory filters = string.concat(
