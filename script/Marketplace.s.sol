@@ -9,7 +9,7 @@ contract MyScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         MarketplaceTable marketplace = new MarketplaceTable("MARKETPLACE");
-        // jobBoardTable.setMoonDaoEntity(0x241A6e3c7341A994E6c0ff9F043AC78041352E64);
+        marketplace.setMoonDaoTeam(0x8899116C9EaBD51eec2f73a9C55f08e4b281b0D6);
 
         vm.stopBroadcast();
     }

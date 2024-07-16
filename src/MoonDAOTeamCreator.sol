@@ -23,7 +23,7 @@ contract MoonDAOTeamCreator is Ownable {
 
     MoonDaoTeamTableland public table;
 
-    uint256 public MoonDaoTeamEdminHatId;
+    uint256 public MoonDaoTeamAdminHatId;
 
     Whitelist internal whitelist;
 
@@ -38,8 +38,8 @@ contract MoonDAOTeamCreator is Ownable {
         whitelist = Whitelist(_whitelist);
     }
 
-    function setMoonDaoTeamEdminHatId(uint256 _MoonDaoTeamEdminHatId) external onlyOwner() {
-        MoonDaoTeamEdminHatId = _MoonDaoTeamEdminHatId;
+    function setMoonDaoTeamAdminHatId(uint256 _MoonDaoTeamAdminHatId) external onlyOwner() {
+        MoonDaoTeamAdminHatId = _MoonDaoTeamAdminHatId;
     }
 
     function setOpenAccess(bool _openAccess) external onlyOwner() {
@@ -55,10 +55,10 @@ contract MoonDAOTeamCreator is Ownable {
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
         
         //mint hat
-        uint256 teamAdminHat = hats.createHat(MoonDaoTeamEdminHatId, adminHatURI, 1, address(gnosisSafe), address(gnosisSafe), true, "");
+        uint256 teamAdminHat = hats.createHat(MoonDaoTeamAdminHatId, adminHatURI, 1, address(gnosisSafe), address(gnosisSafe), true, "");
         hats.mintHat(teamAdminHat, address(this));
 
-        uint256 teamManagerHat = hats.createHat(teamAdminHat, managerHatURI, 8, msg.sender, msg.sender, true, "");
+        uint256 teamManagerHat = hats.createHat(teamAdminHat, managerHatURI, 8, address(gnosisSafe), address(gnosisSafe), true, "");
 
         hats.mintHat(teamManagerHat, msg.sender);
 

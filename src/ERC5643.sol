@@ -33,6 +33,8 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
 
     mapping(uint256 => uint64) private _expirations;
 
+    mapping(uint256 => uint256) public adminHatToTokenId;
+
     mapping(uint256 => uint256) public teamAdminHat;
 
     mapping(uint256 => uint256) public teamManagerHat;
@@ -110,6 +112,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         renewSubscription(tokenId, 365 days);
 
         teamAdminHat[tokenId] = adminHat;
+        adminHatToTokenId[adminHat] = tokenId;
         teamManagerHat[tokenId] = managerHat;
 
         splitContract[tokenId] = _splitContract;

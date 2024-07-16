@@ -27,7 +27,7 @@ contract MyScript is Script {
 
         // uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
 
-        uint256 moonDaoTeamEdminHatId = hats.createHat(700958613345916634661342392262510397514565754986054884508693866479616, "", 1, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, true, "");
+        uint256 moonDaoTeamAdminHatId = hats.createHat(862718293348820473429344482784628181556388621521298319395315527974912, "", 1, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, true, "");
 
         MoonDAOTeam team = new MoonDAOTeam("MoonDaoTeam", "MDE", TREASURY, 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(discountList));
 
@@ -39,10 +39,10 @@ contract MyScript is Script {
 
         creator.setOpenAccess(true);
 
-        creator.setMoonDaoTeamEdminHatId(moonDaoTeamEdminHatId);
+        creator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
 
-        hats.mintHat(moonDaoTeamEdminHatId, address(creator));
-        hats.changeHatEligibility(moonDaoTeamEdminHatId, address(creator));
+        hats.mintHat(moonDaoTeamAdminHatId, address(creator));
+        hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
 
         string memory uriTemplate = string.concat("SELECT+json_object%28%27id%27%2C+id%2C+%27name%27%2C+name%2C+%27description%27%2C+description%2C+%27image%27%2C+image%2C+%27attributes%27%2C+json_array%28json_object%28%27trait_type%27%2C+%27twitter%27%2C+%27value%27%2C+twitter%29%2C+json_object%28%27trait_type%27%2C+%27communications%27%2C+%27value%27%2C+communications%29%2C+json_object%28%27trait_type%27%2C+%27website%27%2C+%27value%27%2C+website%29%2C+json_object%28%27trait_type%27%2C+%27view%27%2C+%27value%27%2C+view%29%2C+json_object%28%27trait_type%27%2C+%27formId%27%2C+%27value%27%2C+formId%29%29%29+FROM+",teamTable.getTableName(),"+WHERE+id%3D");
 		team.setURITemplate(uriTemplate);

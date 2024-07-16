@@ -38,7 +38,7 @@ contract ERC5643Test is Test {
       Whitelist discountList = new Whitelist();
       table = new MoonDaoTeamTableland("MoonDaoTeamTable");
 
-      uint256 moonDaoTeamEdminHatId = hats.createHat(8303663573482397056757440646802046247480240482142496324179911956758528, "", 1, user4, 0x09224bC4a1Ea9ce55E953bFab083A055eC4d19B7, true, "");
+      uint256 moonDaoTeamAdminHatId = hats.createHat(8303663573482397056757440646802046247480240482142496324179911956758528, "", 1, user4, 0x09224bC4a1Ea9ce55E953bFab083A055eC4d19B7, true, "");
       // controller = new TeamRowController(address(table));
 
       erc5643 = new MoonDAOTeam("erc5369", "ERC5643", 0x09224bC4a1Ea9ce55E953bFab083A055eC4d19B7, 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(discountList));
@@ -48,10 +48,10 @@ contract ERC5643Test is Test {
 
       table.setMoonDaoTeam(address(erc5643));
 
-      creator.setMoonDaoTeamEdminHatId(moonDaoTeamEdminHatId);
+      creator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
 
-      hats.mintHat(moonDaoTeamEdminHatId, address(creator));
-      hats.changeHatEligibility(moonDaoTeamEdminHatId, address(creator));
+      hats.mintHat(moonDaoTeamAdminHatId, address(creator));
+      hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
 
       vm.stopPrank();
     }
