@@ -24,7 +24,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     // pricePerSecond = 5E17 wei / 31536000 (seconds in 365 days)
 
     // Roughly calculates to 0.1 (1E17 wei) ether per 365 days.
-    uint256 public pricePerSecond = 31500246;
+    uint256 public pricePerSecond = 3150024;
 
     // Discount for renewal more than 12 months. Denominator is 1000.
     uint256 public discount = 200;
@@ -154,7 +154,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
             revert InsufficientPayment();
         }
 
-        moonDAOTreasury.transfer(msg.value);
+        moonDAOTreasury.call{value: msg.value};
         
         _extendSubscription(tokenId, duration);
     }
