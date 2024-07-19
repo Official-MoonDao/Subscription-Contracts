@@ -24,12 +24,12 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     // pricePerSecond = 5E17 wei / 31536000 (seconds in 365 days)
 
     // Roughly calculates to 0.1 (1E17 wei) ether per 365 days.
-    uint256 public pricePerSecond = 3150024;
+    uint256 public pricePerSecond = 15854895991;
 
-    // Discount for renewal more than 12 months. Denominator is 1000.
-    uint256 public discount = 200;
+    // Discount for renewal more than 12 dmonths. Denominator is 1000.
+    uint256 public discount = 933;
 
-    string private _baseURIString = "https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
+    string private _baseURIString = "https://tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
 
     mapping(uint256 => uint64) private _expirations;
 
@@ -38,6 +38,8 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     mapping(uint256 => uint256) public teamAdminHat;
 
     mapping(uint256 => uint256) public teamManagerHat;
+
+    mapping(uint256 => uint256) public teamMemberHat;
 
     mapping(uint256 => address) public splitContract;
 
@@ -101,7 +103,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         moonDAOTreasury = payable(_newTreasury);
     }
 
-    function mintTo(address to, uint256 adminHat, uint256 managerHat, address _splitContract) external payable returns (uint256) {
+    function mintTo(address to, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _splitContract) external payable returns (uint256) {
 
         //TODO
         // require (Address.isContract(to), "To has to be Safe Contract");
@@ -114,6 +116,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         teamAdminHat[tokenId] = adminHat;
         adminHatToTokenId[adminHat] = tokenId;
         teamManagerHat[tokenId] = managerHat;
+        teamMemberHat[tokenId] = memberHat;
 
         splitContract[tokenId] = _splitContract;
 
@@ -127,6 +130,16 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
      */
     function setPricePerSecond(uint256 _pricePerSecond) external onlyOwner {
         pricePerSecond = _pricePerSecond;
+    }
+
+
+    /**
+     * Allow owner to change the discount
+     * @param _discount new discount
+     */
+
+    function setDiscount(uint256 _discount) external onlyOwner {
+        discount = _discount;
     }
 
 

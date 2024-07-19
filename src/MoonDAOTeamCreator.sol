@@ -10,6 +10,9 @@ import {MoonDaoTeamTableland} from "./tables/MoonDaoTeamTableland.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Whitelist} from "./WhiteList.sol";
 import {PaymentSplitter} from "./PaymentSplitter.sol";
+import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
+import {PassthroughModule} from "./PassthroughModule.sol";
+import {deployModuleInstance} from "@hats-module/utils/DeployFunctions.sol";
 
 contract MoonDAOTeamCreator is Ownable {
 
@@ -20,6 +23,8 @@ contract MoonDAOTeamCreator is Ownable {
     address internal gnosisSingleton;
 
     GnosisSafeProxyFactory internal gnosisSafeProxyFactory;
+
+    HatsModuleFactory internal hatsModuleFactory;
 
     MoonDaoTeamTableland public table;
 
@@ -34,6 +39,7 @@ contract MoonDAOTeamCreator is Ownable {
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
         gnosisSingleton = _gnosisSingleton;
         gnosisSafeProxyFactory = GnosisSafeProxyFactory(_gnosisSafeProxyFactory);
+        hatsModuleFactory = HatsModuleFactory(0x0a3f85fa597B6a967271286aA0724811acDF5CD9);
         table = MoonDaoTeamTableland(_table);
         whitelist = Whitelist(_whitelist);
     }
@@ -46,7 +52,7 @@ contract MoonDAOTeamCreator is Ownable {
         openAccess = _openAccess;
     }
 
-    function createMoonDAOTeam(string memory adminHatURI, string memory managerHatURI, string calldata name, string calldata bio, string calldata image, string calldata twitter, string calldata communications, string calldata website, string calldata _view, string memory formId) external payable returns (uint256 tokenId, uint256 childHatId) {
+    function createMoonDAOTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata bio, string calldata image, string calldata twitter, string calldata communications, string calldata website, string calldata _view, string memory formId) external payable returns (uint256 tokenId, uint256 childHatId) {
 
         require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create MoonDAOTeam");
         
@@ -54,16 +60,27 @@ contract MoonDAOTeamCreator is Ownable {
         bytes memory safeCallData = constructSafeCallData(msg.sender);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
         
-        //mint hat
+        //admin hat
         uint256 teamAdminHat = hats.createHat(MoonDaoTeamAdminHatId, adminHatURI, 1, address(gnosisSafe), address(gnosisSafe), true, "");
         hats.mintHat(teamAdminHat, address(this));
 
+        //manager hat
         uint256 teamManagerHat = hats.createHat(teamAdminHat, managerHatURI, 8, address(gnosisSafe), address(gnosisSafe), true, "");
 
         hats.mintHat(teamManagerHat, msg.sender);
 
         hats.transferHat(teamAdminHat, address(this), address(gnosisSafe));
 
+        //member hat
+        uint256 teamMemberHat = hats.createHat(teamManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
+
+        //member hat passthrough module (allow admin hat to control member hat)
+        PassthroughModule passthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, 0x050079a8fbFCE76818C62481BA015b89567D2d35, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
+
+        hats.changeHatEligibility(teamMemberHat, address(passthroughModule));
+        hats.changeHatToggle(teamMemberHat, address(passthroughModule));
+
+        //payment splitter
         address[] memory payees = new address[](2);
         payees[0] = address(gnosisSafe);
         payees[1] = msg.sender;
@@ -72,7 +89,8 @@ contract MoonDAOTeamCreator is Ownable {
         shares[1] = 100;
         PaymentSplitter split = new PaymentSplitter(payees, shares);
 
-        tokenId = moonDAOTeam.mintTo{value: msg.value}(address(gnosisSafe), teamAdminHat, teamManagerHat, address(split));
+        //mint
+        tokenId = moonDAOTeam.mintTo{value: msg.value}(address(gnosisSafe), teamAdminHat, teamManagerHat, teamMemberHat, address(split));
 
         table.insertIntoTable(tokenId, name, bio, image, twitter, communications, website, _view, formId);
     }
