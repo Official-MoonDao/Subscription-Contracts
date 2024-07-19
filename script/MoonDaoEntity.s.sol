@@ -27,9 +27,11 @@ contract MyScript is Script {
 
         // uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
 
-        uint256 moonDaoTeamAdminHatId = hats.createHat(862718293348820473429344482784628181556388621521298319395315527974912, "", 1, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, true, "");
+        uint256 moonDaoTeamAdminHatId = hats.createHat(970558080017423032608012543132706704250937199211460609319729968971776, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
 
         MoonDAOTeam team = new MoonDAOTeam("MoonDaoTeam", "MDE", TREASURY, 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(discountList));
+
+        team.setDiscount(1000); //testing
 
         MoonDaoTeamTableland teamTable  = new MoonDaoTeamTableland("ENTITYTABLE");
 
@@ -37,7 +39,7 @@ contract MyScript is Script {
 
         MoonDAOTeamCreator creator = new MoonDAOTeamCreator(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(team), 0x3E5c63644E683549055b9Be8653de26E0B4CD36E, 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2, address(teamTable), address(whitelist));
 
-        creator.setOpenAccess(true);
+        // creator.setOpenAccess(true);
 
         creator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
 
