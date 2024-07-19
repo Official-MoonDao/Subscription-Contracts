@@ -30,7 +30,7 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
 
     uint256 public discount = 200;
 
-    string private _baseURIString = "https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
+    string private _baseURIString = "https://tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
 
     mapping(uint256 => uint64) private _expirations;
 
@@ -177,7 +177,7 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
             revert InsufficientPayment();
         }
 
-        moonDAOTreasury.transfer(msg.value);
+        moonDAOTreasury.call{value: msg.value};
         
         _extendSubscription(tokenId, duration);
     }
