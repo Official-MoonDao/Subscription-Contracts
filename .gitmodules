@@ -25,3 +25,6 @@
 [submodule "lib/erc721a-upgradeable"]
 	path = lib/erc721a-upgradeable
 	url = https://github.com/chiru-labs/ERC721A-Upgradeable
+[submodule "lib/hats-module"]
+	path = lib/hats-module
+	url = https://github.com/Hats-Protocol/hats-module
