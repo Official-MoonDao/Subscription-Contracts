@@ -90,7 +90,7 @@ contract MoonDAOTeamCreator is Ownable {
         PaymentSplitter split = new PaymentSplitter(payees, shares);
 
         //mint
-        tokenId = moonDAOTeam.mintTo{value: msg.value}(address(gnosisSafe), teamAdminHat, teamManagerHat, teamMemberHat, address(split));
+        tokenId = moonDAOTeam.mintTo{value: msg.value}(address(gnosisSafe), msg.sender, teamAdminHat, teamManagerHat, teamMemberHat, address(split));
 
         table.insertIntoTable(tokenId, name, bio, image, twitter, communications, website, _view, formId);
     }

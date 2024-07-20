@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 import "@thirdweb-dev/contracts/extension/Ownable.sol";
 import "@thirdweb-dev/contracts/eip/ERC721A.sol";
-import "./IERC5643.sol";
+import "./IERC5643Team.sol";
 import {ERC721URIStorage} from "./ERC721URIStorage.sol";
 import "@thirdweb-dev/contracts/lib/Address.sol";
 import "@hats/Interfaces/IHats.sol";
@@ -18,7 +18,7 @@ error SubscriptionNotRenewable();
 error InvalidTokenId();
 error CallerNotOwnerNorApproved();
 
-contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
+contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
     // For example: targeted subscription = 0.5 eth / 365 days.
     // pricePerSecond = 5E17 wei / 31536000 (seconds in 365 days)
@@ -103,7 +103,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         moonDAOTreasury = payable(_newTreasury);
     }
 
-    function mintTo(address to, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _splitContract) external payable returns (uint256) {
+    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _splitContract) external payable returns (uint256) {
 
         //TODO
         // require (Address.isContract(to), "To has to be Safe Contract");
@@ -111,7 +111,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         uint256 tokenId = _currentIndex;
 
         _mint(to, 1);
-        renewSubscription(tokenId, 365 days);
+        renewSubscription(sender, tokenId, 365 days);
 
         teamAdminHat[tokenId] = adminHat;
         adminHatToTokenId[adminHat] = tokenId;
@@ -144,9 +144,9 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
 
 
     /**
-     * @dev See {IERC5643-renewSubscription}.
+     * @dev See {IERC5643Team-renewSubscription}.
      */
-    function renewSubscription(uint256 tokenId, uint64 duration)
+    function renewSubscription(address sender, uint256 tokenId, uint64 duration)
         public
         payable
         virtual
@@ -163,7 +163,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
             revert RenewalTooLong();
         }
 
-        if (msg.value < _getRenewalPrice(tokenId, duration)) {
+        if (msg.value < getRenewalPrice(sender, duration)) {
             revert InsufficientPayment();
         }
 
@@ -239,24 +239,13 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
      * a given tokenId. This value is defaulted to 0, but should be overridden in
      * implementing contracts.
      */
-    function _getRenewalPrice(uint256 tokenId, uint64 duration)
-        internal
-        view
-        virtual
-        returns (uint256)
-    {
+    function getRenewalPrice(address owner, uint64 duration) public view virtual returns (uint256) {
         uint256 price = duration * pricePerSecond;
-        address owner = this.ownerOf(tokenId);
-        return discountList.isWhitelisted(owner) ? price * (1000 - discount) / 1000  : price;
-    }
-
-    function getRenewalPrice(address owner, uint64 duration) external view returns (uint256) {
-        uint256 price = duration * pricePerSecond;
-        return discountList.isWhitelisted(owner) ? price * (1000 - discount) / 1000  : price;
+        return discountList.isWhitelisted(owner) ? price * (1000 - discount) / 1000 : price;
     }
 
     /**
-     * @dev See {IERC5643-cancelSubscription}.
+     * @dev See {IERC5643Team-cancelSubscription}.
      */
     function cancelSubscription(uint256 tokenId) external payable virtual {
         if (!_isApprovedOrOwner(msg.sender, tokenId) || _msgSender() == owner()) {
@@ -269,7 +258,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     }
 
     /**
-     * @dev See {IERC5643-expiresAt}.
+     * @dev See {IERC5643Team-expiresAt}.
      */
     function expiresAt(uint256 tokenId)
         external
@@ -284,7 +273,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     }
 
     /**
-     * @dev See {IERC5643-isRenewable}.
+     * @dev See {IERC5643Team-isRenewable}.
      */
     function isRenewable(uint256 tokenId)
         external
@@ -354,7 +343,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         override
         returns (bool)
     {
-        return interfaceId == type(IERC5643).interfaceId
+        return interfaceId == type(IERC5643Team).interfaceId
             || super.supportsInterface(interfaceId);
     }
 }
