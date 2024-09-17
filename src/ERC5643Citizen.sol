@@ -25,10 +25,10 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     // pricePerSecond = 5E17 wei / 31536000 (seconds in 365 days)
 
     // Roughly calculates to 0.1 (1E17 wei) ether per 365 days.
-    uint256 public pricePerSecond = 31500246;
+    uint256 public pricePerSecond = 351978691;
 
 
-    uint256 public discount = 200;
+    uint256 public discount = 1000;
 
     string private _baseURIString = "https://tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
 
@@ -143,6 +143,12 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
         return tokenId;
     }
 
+    function recoverMintTo(address to) public onlyOwner returns (uint256) {
+        uint256 tokenId = _currentIndex;
+        _mint(to, 1);
+        renewSubscription(tokenId, 365 days);
+        return tokenId;
+    }
 
     /**
      * Allow owner to change the subscription price
@@ -150,6 +156,15 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
      */
     function setPricePerSecond(uint256 _pricePerSecond) external onlyOwner {
         pricePerSecond = _pricePerSecond;
+    }
+
+        /**
+     * Allow owner to change the discount
+     * @param _discount new discount
+     */
+
+    function setDiscount(uint256 _discount) external onlyOwner {
+        discount = _discount;
     }
 
 
@@ -177,7 +192,7 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
             revert InsufficientPayment();
         }
 
-        moonDAOTreasury.call{value: msg.value};
+        moonDAOTreasury.call{value: msg.value}("");
         
         _extendSubscription(tokenId, duration);
     }
@@ -189,23 +204,6 @@ contract MoonDAOCitizen is ERC721URIStorage, URITemplate, IERC5643, Ownable {
     function setMaximumRenewalDuration(uint64 duration) external onlyOwner {
         _setMaximumRenewalDuration(duration);
     }
-
-    // function setTokenURIOwner(uint256 tokenId, string memory _uri) public {
-    //     require(_isApprovedOrOwner(msg.sender, tokenId) || _msgSender() == owner(), "Only token owner or contract owner can set URI");
-    //      if (!_exists(tokenId)) {
-    //         revert InvalidTokenId();
-    //     }
-    //     _setTokenURI(tokenId, _uri);
-    // }
-
-    // function setTokenURIAdmin(uint256 tokenId, string memory _uri, uint256 _hatId) public {
-    //     require(hats.getHatEligibilityModule(_hatId) == msg.sender && hats.isAdminOfHat(ownerOf(tokenId), _hatId), "Caller has to wear a child of hat of token's topHat");
-    //     if (!_exists(tokenId)) {
-    //         revert InvalidTokenId();
-    //     }
-    //     _setTokenURI(tokenId, _uri);
-    // }
-
  
     /**
      *  This function returns who is authorized to set the owner of your contract.

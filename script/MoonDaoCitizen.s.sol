@@ -23,7 +23,7 @@ contract MyScript is Script {
 
         MoonDAOCitizen citizen = new MoonDAOCitizen("MoonDaoCitizen", "MDC", TREASURY, address(citizenTable), address(whitelist), address(discountList));
 
-        citizen.setOpenAccess(true);
+        // citizen.setOpenAccess(true);
 
         CitizenRowController citizenRowController = new CitizenRowController(address(citizenTable));
 

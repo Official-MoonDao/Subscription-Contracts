@@ -41,9 +41,12 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
     mapping(uint256 => uint256) public teamMemberHat;
 
+    mapping(uint256 => address) public memberPassthroughModule;
+
     mapping(uint256 => address) public splitContract;
 
     address payable public moonDAOTreasury;
+    address public moonDaoCreator;
 
     uint64 internal minimumRenewalDuration;
     uint64 internal maximumRenewalDuration;
@@ -103,10 +106,8 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
         moonDAOTreasury = payable(_newTreasury);
     }
 
-    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _splitContract) external payable returns (uint256) {
-
-        //TODO
-        // require (Address.isContract(to), "To has to be Safe Contract");
+    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _memberPassthroughModule, address _splitContract) external payable returns (uint256) {
+        require (msg.sender == moonDaoCreator, "Only the MoonDAO Team Creator can mint");
 
         uint256 tokenId = _currentIndex;
 
@@ -117,6 +118,8 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
         adminHatToTokenId[adminHat] = tokenId;
         teamManagerHat[tokenId] = managerHat;
         teamMemberHat[tokenId] = memberHat;
+
+        memberPassthroughModule[tokenId] = _memberPassthroughModule;
 
         splitContract[tokenId] = _splitContract;
 
@@ -140,6 +143,15 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
     function setDiscount(uint256 _discount) external onlyOwner {
         discount = _discount;
+    }
+
+    /**
+     * Allow owner to change the moonDaoCreator
+     * @param _moonDaoCreator new moonDaoCreator
+     */
+
+    function setMoonDaoCreator(address _moonDaoCreator) external onlyOwner {
+        moonDaoCreator = _moonDaoCreator;
     }
 
 
@@ -167,7 +179,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
             revert InsufficientPayment();
         }
 
-        moonDAOTreasury.call{value: msg.value};
+        moonDAOTreasury.call{value: msg.value}("");
         
         _extendSubscription(tokenId, duration);
     }

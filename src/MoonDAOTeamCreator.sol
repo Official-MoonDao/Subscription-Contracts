@@ -54,7 +54,7 @@ contract MoonDAOTeamCreator is Ownable {
 
     function createMoonDAOTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata bio, string calldata image, string calldata twitter, string calldata communications, string calldata website, string calldata _view, string memory formId) external payable returns (uint256 tokenId, uint256 childHatId) {
 
-        require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create MoonDAOTeam");
+        require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create a MoonDAO Team");
         
 
         bytes memory safeCallData = constructSafeCallData(msg.sender);
@@ -68,17 +68,16 @@ contract MoonDAOTeamCreator is Ownable {
         uint256 teamManagerHat = hats.createHat(teamAdminHat, managerHatURI, 8, address(gnosisSafe), address(gnosisSafe), true, "");
 
         hats.mintHat(teamManagerHat, msg.sender);
-
         hats.transferHat(teamAdminHat, address(this), address(gnosisSafe));
 
         //member hat
         uint256 teamMemberHat = hats.createHat(teamManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
 
         //member hat passthrough module (allow admin hat to control member hat)
-        PassthroughModule passthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, 0x050079a8fbFCE76818C62481BA015b89567D2d35, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
+        PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, 0x050079a8fbFCE76818C62481BA015b89567D2d35, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
 
-        hats.changeHatEligibility(teamMemberHat, address(passthroughModule));
-        hats.changeHatToggle(teamMemberHat, address(passthroughModule));
+        hats.changeHatEligibility(teamMemberHat, address(memberPassthroughModule));
+        hats.changeHatToggle(teamMemberHat, address(memberPassthroughModule));
 
         //payment splitter
         address[] memory payees = new address[](2);
@@ -90,7 +89,7 @@ contract MoonDAOTeamCreator is Ownable {
         PaymentSplitter split = new PaymentSplitter(payees, shares);
 
         //mint
-        tokenId = moonDAOTeam.mintTo{value: msg.value}(address(gnosisSafe), msg.sender, teamAdminHat, teamManagerHat, teamMemberHat, address(split));
+        tokenId = moonDAOTeam.mintTo{value: msg.value}(address(gnosisSafe), msg.sender, teamAdminHat, teamManagerHat, teamMemberHat, address(memberPassthroughModule), address(split));
 
         table.insertIntoTable(tokenId, name, bio, image, twitter, communications, website, _view, formId);
     }

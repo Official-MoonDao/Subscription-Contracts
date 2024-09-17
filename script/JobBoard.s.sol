@@ -9,7 +9,7 @@ contract MyScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         JobBoardTable jobBoardTable = new JobBoardTable("JOBBOARD");
-        jobBoardTable.setMoonDaoTeam(0x8899116C9EaBD51eec2f73a9C55f08e4b281b0D6);
+        jobBoardTable.setMoonDaoTeam(0x2a9135f02c35b07312A6D01c71B77ee683C59542);
 
         vm.stopBroadcast();
     }
