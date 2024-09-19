@@ -9,65 +9,65 @@ import {TablelandPolicy} from "@evm-tableland/contracts/TablelandPolicy.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
-import {MoonDAOCitizen} from "../ERC5643Citizen.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MoonDaoDistribution is TablelandController, Ownable {
+contract MoonDaoDelegation is TablelandController, Ownable {
     using ERC165Checker for address;
 
-    uint256 private _distributionsTableId;
+    uint256 private _delegationsTableId;
     // address of citizen nft
-    address private _citizenNft;
-    string private constant DISTRIBUTIONS_PREFIX = "citizen_distributions";
-    string private constant DISTRIBUTIONS_SCHEMA =
-        "id integer primary key, quarter integer, year integer, citizen integer, address text, distribution text, unqiue(quarter, year, citizen)";
+    address private _MOONEY_ADDRESS;
+    string private constant DELEGATIONS_PREFIX = "citizen_delegations";
+    string private constant DELEGATIONS_SCHEMA =
+        "id integer primary key, quarter integer, year integer, address text, delegation text, unqiue(quarter, year, address)";
 
-    constructor(address citizenNft) Ownable(msg.sender) {
-        _citizenNft = citizenNft;
+    constructor(address MOONEY_ADDRESS) Ownable(msg.sender){
+        _MOONEY_ADDRESS = MOONEY_ADDRESS;
         // Create questions table.
-        _distributionsTableId = TablelandDeployments.get().create(
+        _delegationsTableId = TablelandDeployments.get().create(
             address(this),
-            SQLHelpers.toCreateFromSchema(DISTRIBUTIONS_SCHEMA, DISTRIBUTIONS_PREFIX)
+            SQLHelpers.toCreateFromSchema(DELEGATIONS_SCHEMA, DELEGATIONS_PREFIX)
         );
 
         // Set controller for questions table to this contract.
         TablelandDeployments.get().setController(
             address(this),
-            _distributionsTableId,
+            _delegationsTableId,
             address(this)
         );
     }
 
-    // Create an distribution for a given quarter and year.
-    // Here we let the contract do inserts into the distribution table.
+    // Create an delegation for a given quarter and year.
+    // Here we let the contract do inserts into the delegation table.
     // The sender must be a holder of a citizen token to distribute.
-    function distribute(uint256 quarter, uint256 year, string memory distribution) external {
-        require(
-            MoonDAOCitizen(_citizenNft).balanceOf(msg.sender) > 0,
-            "sender is not token owner"
-        );
+    function distribute(uint256 quarter, uint256 year, string memory delegation) external {
+        // require mooney holder
+        //require(
+            ////ERC5643Citizen(token).balanceOf(msg.sender) > 0,
+            ////"sender is not token owner"
+        //);
 
         // Get the id of the citizen
-        uint256 citizenId = MoonDAOCitizen(_citizenNft).getOwnedToken(msg.sender);
+        //uint256 citizenId = ERC5643Citizen(token).getOwnedToken(msg.sender);
 
         // Insert answer.
         TablelandDeployments.get().mutate(
             address(this),
-            _distributionsTableId,
+            _delegationsTableId,
             SQLHelpers.toInsert(
-                DISTRIBUTIONS_PREFIX,
-                _distributionsTableId,
-                "quarter,year,citizen,address,distribution",
+                DELEGATIONS_PREFIX,
+                _delegationsTableId,
+                "quarter,year,citizen,address,delegation",
                 string.concat(
                     Strings.toString(quarter),
                     ",",
                     Strings.toString(year),
                     ",",
-                    Strings.toString(citizenId),
+                    Strings.toString(msg.sender),
                     ",",
                     SQLHelpers.quote(Strings.toHexString(msg.sender)),
                     ",",
-                    SQLHelpers.quote(distribution)
+                    SQLHelpers.quote(delegation)
                 )
             )
         );
@@ -89,7 +89,7 @@ contract MoonDaoDistribution is TablelandController, Ownable {
     }
 
     // Return the questions table name
-    function getDistributionsTable() public view returns (string memory) {
-        return SQLHelpers.toNameFromId(DISTRIBUTIONS_PREFIX, _distributionsTableId);
+    function getDelegationsTable() public view returns (string memory) {
+        return SQLHelpers.toNameFromId(DELEGATIONS_PREFIX, _delegationsTableId);
     }
 }
