@@ -57,13 +57,11 @@ contract MoonDaoDelegation is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 DELEGATIONS_PREFIX,
                 _delegationsTableId,
-                "quarter,year,citizen,address,delegation",
+                "quarter,year,address,delegation",
                 string.concat(
                     Strings.toString(quarter),
                     ",",
                     Strings.toString(year),
-                    ",",
-                    Strings.toString(msg.sender),
                     ",",
                     SQLHelpers.quote(Strings.toHexString(msg.sender)),
                     ",",

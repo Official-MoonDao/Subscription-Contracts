@@ -7,12 +7,10 @@ contract MyScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
-        address citizenNftAddress = "0x31bD6111eDde8D8D6E12C8c868C48FF3623CF098";
 
-        Distribution marketplace = new MoonDaoDistribution("");
-        marketplace.setMoonDaoTeam(0x2a9135f02c35b07312A6D01c71B77ee683C59542);
+        Distribution distribution = new Distribution("DISTRIBUTION");
+        //marketplace.setMoonDaoTeam(0x2a9135f02c35b07312A6D01c71B77ee683C59542);
 
         vm.stopBroadcast();
     }
 }
-
