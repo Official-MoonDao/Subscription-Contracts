@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import {MoonDAOCitizen} from "../ERC5643Citizen.sol";
-import * as _ from 'underscore';
 
 //import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 

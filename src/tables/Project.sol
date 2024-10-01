@@ -27,14 +27,15 @@ contract Project is TablelandController, Ownable {
                 "MPD integer,"
                 "proposalIPFS text,"
                 "finalReportIPFS text,"
-                "allocation text",
+                "finalReportLink text,"
+                "contributors text",
                 _TABLE_PREFIX
             )
         );
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory title, uint256 year, uint256 quarter, uint256 MDP, string memory proposalIPFS, string memory finalReportIPFS, string memory allocation) external {
+    function insertIntoTable(string memory title, uint256 year, uint256 quarter, uint256 MDP, string memory proposalIPFS, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external {
         string memory setters = string.concat(
                 Strings.toString(currId), // Convert to a string
                 ",",
@@ -50,7 +51,9 @@ contract Project is TablelandController, Ownable {
                 ",",
                 SQLHelpers.quote(finalReportIPFS), // Wrap strings in single quotes with the `quote` method
                 ",",
-                SQLHelpers.quote(allocation) // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(finalReportLink), // Wrap strings in single quotes with the `quote` method
+                ",",
+                SQLHelpers.quote(contributors) // Wrap strings in single quotes with the `quote` method
         );
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
@@ -58,7 +61,7 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,year,quarter,MDP,proposalIPFS,finalReportIPFS,allocation",
+                "id,title,year,quarter,MDP,proposalIPFS,finalReportIPFS,finalReportLink,contributors",
                 setters
             )
         );

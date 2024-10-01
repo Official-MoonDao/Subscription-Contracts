@@ -7,6 +7,7 @@ import "../src/ERC5643.sol";
 import {MoonDaoTeamTableland} from "../src/tables/MoonDaoTeamTableland.sol";
 import {Project} from "../src/tables/Project.sol";
 import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
+import {TablelandDeployments} from "@evm-tableland/contracts/utils/TablelandDeployments.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
 import {Whitelist} from "../src/Whitelist.sol";
 
@@ -20,17 +21,23 @@ contract ProjectTest is Test {
     function setUp() public {
       //vm.deal(user1, 10 ether);
       //vm.deal(user2, 10 ether);
+
+      vm.startPrank(user1);
+
       project = new Project("test");
       console.log(address(project));
 
       //vm.startPrank(user4);
 
 
-      //vm.stopPrank();
+      vm.stopPrank();
     }
 
-    function testUpdateTable() public {
-        project.insertIntoTable("test", 2021, 1, 100, "proposal", "final", "allocation");
+    function testInsertTable() public {
+        project.insertIntoTable("test", 2021, 1, 100, "proposal", "final", "link", "allocation 0");
     }
+    //function testUpdateTable() public {
+        //project.updateTable("test", 2021, 1, 100, "proposal", "final", "allocation 1");
+    //}
 }
 

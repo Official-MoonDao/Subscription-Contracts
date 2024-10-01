@@ -7,7 +7,7 @@
 forge install
 ```
 
-### Running tests locally
+### Running tests on test chain
 
 1. `forge test -vv`
 2. `forge test --match-path test/EntityERC5643Test.t.sol -vv`
@@ -15,3 +15,18 @@ forge install
 `source .env`
 `forge test --via-ir --fork-url $SEPOLIA_RPC_URL --match-path test/EntityTest.t.sol -vv`
 `forge script script/Project.s.sol:MyScript --via-ir --rpc-url $SEPOLIA_RPC_URL --broadcast --verify -vv`
+
+### Running tests locally
+
+```bash
+# Set up localchain
+anvil
+
+# Deploy tableland to localchain
+git clone https://github.com/tablelandnetwork/evm-tableland.git
+cd evm-tableland
+npx hardhat run scripts/deploy.ts --network localhost
+
+# Run tests
+ETHERSCAN_API_KEY="Y9MZ685PVCHY686V7MKFQXS8Z9Z6WTY4GZ"  forge test --via-ir --forkurl 127.0.0.1:8545 --match-path test/ProjectTest.t.sol -vvvv
+```
