@@ -22,8 +22,8 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toCreateFromSchema(
                 "id integer primary key,"
                 "title text,"
-                "year integer,"
                 "quarter integer,"
+                "year integer,"
                 "MPD integer,"
                 "proposalIPFS text,"
                 "finalReportIPFS text,"
@@ -35,15 +35,15 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory title, uint256 year, uint256 quarter, uint256 MDP, string memory proposalIPFS, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external {
+    function insertIntoTable(string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external {
         string memory setters = string.concat(
                 Strings.toString(currId), // Convert to a string
                 ",",
                 SQLHelpers.quote(title), // Wrap strings in single quotes with the `quote` method
                 ",",
-                Strings.toString(year),
-                ",",
                 Strings.toString(quarter),
+                ",",
+                Strings.toString(year),
                 ",",
                 Strings.toString(MDP),
                 ",",
@@ -61,7 +61,7 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,year,quarter,MDP,proposalIPFS,finalReportIPFS,finalReportLink,contributors",
+                "id,title,quarter,year,MDP,proposalIPFS,finalReportIPFS,finalReportLink,contributors",
                 setters
             )
         );

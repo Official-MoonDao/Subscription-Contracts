@@ -6,14 +6,16 @@ import {TablelandController} from "@evm-tableland/contracts/TablelandController.
 import "@evm-tableland/contracts/utils/TablelandDeployments.sol";
 import {SQLHelpers} from "@evm-tableland/contracts/utils/SQLHelpers.sol";
 import {TablelandPolicy} from "@evm-tableland/contracts/TablelandPolicy.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import {MoonDAOCitizen} from "../ERC5643Citizen.sol";
 
 //import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Distribution is TablelandController {
+contract Distribution is ERC721Holder, Ownable {
     using ERC165Checker for address;
 
     uint256 private _tableId;
@@ -24,7 +26,7 @@ contract Distribution is TablelandController {
         "id integer primary key, quarter integer, year integer, address text, distribution text, unique(quarter, year, address)";
 
     //constructor(address citizenNft) Ownable(msg.sender) {
-    constructor(string memory _table_prefix)  {
+    constructor(string memory _table_prefix) Ownable(msg.sender)  {
         _TABLE_PREFIX = _table_prefix;
         //_citizenNft = citizenNft;
         // Create questions table.
@@ -36,11 +38,11 @@ contract Distribution is TablelandController {
         );
 
         // Set controller for distribution table to this contract.
-        TablelandDeployments.get().setController(
-            address(this),
-            _tableId,
-            address(this)
-        );
+        //TablelandDeployments.get().setController(
+            //address(this),
+            //_tableId,
+            //address(this)
+        //);
     }
 
     // Create an distribution for a given quarter and year.
@@ -70,34 +72,81 @@ contract Distribution is TablelandController {
                     ",",
                     SQLHelpers.quote(Strings.toHexString(msg.sender)),
                     ",",
-                    SQLHelpers.quote(distribution)
+                    "json(",
+                    SQLHelpers.quote(distribution),
+                    ")"
                 )
             )
         );
     }
 
+    function updateTableCol(uint256 quarter, uint256 year, string memory distribution) external {
+        // Update answer.
+        TablelandDeployments.get().mutate(
+            address(this), // Table owner, i.e., this contract
+            _tableId,
+            SQLHelpers.toUpdate(
+                _TABLE_PREFIX,
+                _tableId,
+                string.concat(
+                "distribution=",
+                    "json(",
+                    SQLHelpers.quote(distribution),
+                    ")"
+                ),
+                string.concat(
+                    "quarter = ",
+                    Strings.toString(quarter),
+                    " AND year = ",
+                    Strings.toString(year),
+                    " AND address = ",
+                    SQLHelpers.quote(Strings.toHexString(msg.sender))
+                )
+            )
+        );
+    }
+
+    // Delete a row from the table by ID
+    function deleteFromTable(uint256 quarter, uint256 year) external {
+        // Mutate a row at `id`
+        TablelandDeployments.get().mutate(
+            address(this),
+            _tableId,
+            SQLHelpers.toDelete(_TABLE_PREFIX, _tableId,
+                string.concat(
+                    "quarter = ",
+                    Strings.toString(quarter),
+                    " AND year = ",
+                    Strings.toString(year),
+                    " AND address = ",
+                    SQLHelpers.quote(Strings.toHexString(msg.sender))
+                )
+)
+        );
+    }
+
     // Set the ACL controller to enable row-level writes with dynamic policies
-    //function setAccessControl(address controller) external onlyOwner{
-        //TablelandDeployments.get().setController(
-            //address(this), // Table owner, i.e., this contract
-            //_tableId,
-            //controller // Set the controller address—a separate controller contract
-        //);
-    //}
+    function setAccessControl(address controller) external onlyOwner{
+        TablelandDeployments.get().setController(
+            address(this), // Table owner, i.e., this contract
+            _tableId,
+            controller // Set the controller address—a separate controller contract
+        );
+    }
 
     // Implement ITablelandController for distribution table.
     // Anyone can insert.
-    function getPolicy(address caller, uint256) public payable override returns (TablelandPolicy memory) {
-        return
-            TablelandPolicy({
-                allowInsert: true,
-                allowUpdate: true,
-                allowDelete: true,
-                whereClause: "",
-                withCheck: "",
-                updatableColumns: new string[](0)
-            });
-    }
+    //function getPolicy(address caller, uint256) public payable override returns (TablelandPolicy memory) {
+        //return
+            //TablelandPolicy({
+                //allowInsert: true,
+                //allowUpdate: true,
+                //allowDelete: true,
+                //whereClause: "",
+                //withCheck: "",
+                //updatableColumns: new string[](0)
+            //});
+    //}
 
     // Return the table ID
     function getTableId() external view returns (uint256) {
