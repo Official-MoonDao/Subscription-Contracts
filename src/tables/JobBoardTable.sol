@@ -36,7 +36,9 @@ contract JobBoardTable is ERC721Holder, Ownable {
 
     // Let anyone insert into the table
     function insertIntoTable(string memory title, string memory description, uint256 teamId, string memory contactInfo) external {
-        require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        if (msg.sender != owner()) {
+            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can insert");
+        }
         string memory setters = string.concat(
                 Strings.toString(currId), // Convert to a string
                 ",",
@@ -64,7 +66,9 @@ contract JobBoardTable is ERC721Holder, Ownable {
 
     function updateTable(uint256 id, string memory title, string memory description, uint256 teamId, string memory contactInfo) external {
         
-        require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        if (msg.sender != owner()) {
+            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can update");
+        }
         require (idToTeamId[id] == teamId, "You can only update job post by your team");
 
         // Set the values to update
@@ -93,7 +97,9 @@ contract JobBoardTable is ERC721Holder, Ownable {
     function updateTableCol(uint256 id, uint256 teamId, string memory colName, string memory val) external {
         require (Strings.equal(colName, "id"), "Cannot update id");
         require (Strings.equal(colName, "teamId"), "Cannot update teamId");
-        require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        if (msg.sender != owner()) {
+            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can update");
+        }
 
         // Set the values to update
         string memory setters = string.concat(colName, "=", SQLHelpers.quote(val));
@@ -113,7 +119,9 @@ contract JobBoardTable is ERC721Holder, Ownable {
 
     // Delete a row from the table by ID 
     function deleteFromTable(uint256 id, uint256 teamId) external {
-        require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        if (msg.sender != owner()) {
+            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can delete");
+        }
         require (idToTeamId[id] == teamId, "You can only delete job post by your team");
 
         // Specify filters for which row to delete
