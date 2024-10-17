@@ -24,8 +24,9 @@ contract Project is TablelandController, Ownable {
                 "title text,"
                 "quarter integer,"
                 "year integer,"
-                "MPD integer,"
+                "MDP integer,"
                 "proposalIPFS text,"
+                "proposalLink text,"
                 "finalReportIPFS text,"
                 "finalReportLink text,"
                 "contributors text",
@@ -35,7 +36,7 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external {
+    function insertIntoTable(string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external {
         string memory setters = string.concat(
                 Strings.toString(currId), // Convert to a string
                 ",",
@@ -49,6 +50,8 @@ contract Project is TablelandController, Ownable {
                 ",",
                 SQLHelpers.quote(proposalIPFS), // Wrap strings in single quotes with the `quote` method
                 ",",
+                SQLHelpers.quote(proposalLink), // Wrap strings in single quotes with the `quote` method
+                ",",
                 SQLHelpers.quote(finalReportIPFS), // Wrap strings in single quotes with the `quote` method
                 ",",
                 SQLHelpers.quote(finalReportLink), // Wrap strings in single quotes with the `quote` method
@@ -61,7 +64,7 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,quarter,year,MDP,proposalIPFS,finalReportIPFS,finalReportLink,contributors",
+                "id,title,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,contributors",
                 setters
             )
         );
