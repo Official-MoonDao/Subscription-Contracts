@@ -9,7 +9,6 @@ contract MyScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         Project project = new Project("PROJECT");
-        //marketplace.setMoonDaoTeam(0x2a9135f02c35b07312A6D01c71B77ee683C59542);
 
         vm.stopBroadcast();
     }
