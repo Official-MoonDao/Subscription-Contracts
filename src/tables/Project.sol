@@ -81,12 +81,10 @@ contract Project is TablelandController, Ownable {
         );
     }
 
-    // Return the table ID
     function getTableId() external view returns (uint256) {
         return _tableId;
     }
 
-    // Return the table name
     function getTableName() external view returns (string memory) {
         return SQLHelpers.toNameFromId(_TABLE_PREFIX, _tableId);
     }

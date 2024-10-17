@@ -26,7 +26,6 @@ contract Distribution is ERC721Holder, Ownable {
         );
     }
 
-    // Create an distribution for a given quarter and year.
     function insertIntoTable(uint256 quarter, uint256 year, string memory distribution) external {
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
@@ -75,7 +74,6 @@ contract Distribution is ERC721Holder, Ownable {
         );
     }
 
-    // Delete a row from the table by quarter and year
     function deleteFromTable(uint256 quarter, uint256 year) external {
         TablelandDeployments.get().mutate(
             address(this),
@@ -102,12 +100,10 @@ contract Distribution is ERC721Holder, Ownable {
         );
     }
 
-    // Return the table ID
     function getTableId() external view returns (uint256) {
         return _tableId;
     }
 
-    // Return the table name
     function getTableName() external view returns (string memory) {
         return SQLHelpers.toNameFromId(_TABLE_PREFIX, _tableId);
     }

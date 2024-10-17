@@ -14,21 +14,14 @@ import {Whitelist} from "../src/Whitelist.sol";
 contract DistributionTest is Test {
 
     address user1 = address(0x1);
-    address user2 = address(0x2);
-    address user3 = address(0x3);
     Distribution distribution;
 
     function setUp() public {
-      //vm.deal(user1, 10 ether);
-      //vm.deal(user2, 10 ether);
 
       vm.startPrank(user1);
 
       distribution = new Distribution("test");
       console.log(address(distribution));
-
-      //vm.startPrank(user4);
-
 
       vm.stopPrank();
     }

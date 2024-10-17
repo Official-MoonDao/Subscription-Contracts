@@ -14,21 +14,14 @@ import {Whitelist} from "../src/Whitelist.sol";
 contract ProjectTest is Test {
 
     address user1 = address(0x1);
-    address user2 = address(0x2);
-    address user3 = address(0x3);
     Project project;
 
     function setUp() public {
-      //vm.deal(user1, 10 ether);
-      //vm.deal(user2, 10 ether);
 
       vm.startPrank(user1);
 
       project = new Project("test");
       console.log(address(project));
-
-      //vm.startPrank(user4);
-
 
       vm.stopPrank();
     }
@@ -36,8 +29,8 @@ contract ProjectTest is Test {
     function testInsertTable() public {
         project.insertIntoTable("test", 2021, 1, 100, "proposal", "final", "link", "allocation 0");
     }
-    //function testUpdateTable() public {
-        //project.updateTable("test", 2021, 1, 100, "proposal", "final", "allocation 1");
-    //}
+    function testUpdateTable() public {
+        project.updateTable("test", 2021, 1, 100, "proposal", "final", "allocation 1");
+    }
 }
 
