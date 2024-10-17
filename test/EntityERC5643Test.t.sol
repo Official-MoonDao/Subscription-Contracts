@@ -24,11 +24,13 @@ contract ERC5643Test is Test {
 
         Whitelist discountList = new Whitelist();
 
+        vm.prank(user3);
         erc5643 = new MoonDAOTeam("erc5369", "ERC5643", user3, 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(discountList));
+        erc5643.setMoonDaoCreator(user1);
 
         uint256 before = user3.balance;
 
-        uint256 token1 = erc5643.mintTo{value: 0.1 ether}(user1, 123456, 123456, address(0));
+        uint256 token1 = erc5643.mintTo{value: 0.1 ether}(user3, user1, 123456, 123456, 123456, address(0), address(0));
         assertEq(token1, tokenId);
         
         uint256 after_ = user3.balance;
@@ -50,32 +52,32 @@ contract ERC5643Test is Test {
     function testRenewalInvalidTokenId() public {
         vm.prank(user1);
         vm.expectRevert(InvalidTokenId.selector);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId + 10, 30 days);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId + 10, 30 days);
     }
 
     function testRenewalNotOwner() public {
         // vm.expectRevert(CallerNotOwnerNorApproved.selector);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId, 2000);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId, 2000);
     }
 
     function testRenewalDurationTooShort() public {
         erc5643.setMinimumRenewalDuration(1000);
         vm.prank(user1);
         vm.expectRevert(RenewalTooShort.selector);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId, 999);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId, 999);
     }
 
     function testRenewalDurationTooLong() public {
         erc5643.setMaximumRenewalDuration(1000);
         vm.prank(user1);
         vm.expectRevert(RenewalTooLong.selector);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId, 1001);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId, 1001);
     }
 
     function testRenewalInsufficientPayment() public {
         vm.prank(user1);
         vm.expectRevert(InsufficientPayment.selector);
-        erc5643.renewSubscription{value: 0.008 ether}(tokenId, 30 days);
+        erc5643.renewSubscription{value: 0.008 ether}(user1, tokenId, 30 days);
     }
 
     function testRenewalExistingSubscription() public {
@@ -84,7 +86,7 @@ contract ERC5643Test is Test {
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
         emit SubscriptionUpdate(tokenId, 31536000 + 30 days + 1 );
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId, 30 days);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId, 30 days);
         assertEq(user1.balance, 9.9 ether);
     }
 
@@ -93,13 +95,13 @@ contract ERC5643Test is Test {
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit SubscriptionUpdate(tokenId2, 365 days + 1000);
-        erc5643.mintTo{value: 0.1 ether}(user2, 123456, 123456, address(0));
+        erc5643.mintTo{value: 0.1 ether}(user2, user2, 123456, 123456, 123456, address(0), address(0));
 
         // This renewal will succeed because the subscription is renewable
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit SubscriptionUpdate(tokenId2, 365 days + 30 days + 1000);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId2, 30 days);
+        erc5643.renewSubscription{value: 0.1 ether}(user2, tokenId2, 30 days);
     }
 
     function testCancelValid() public {
@@ -120,7 +122,7 @@ contract ERC5643Test is Test {
 
         assertEq(erc5643.expiresAt(tokenId), 31536001 + currTime - 1);
         vm.startPrank(user1);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId, 2000);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId, 2000);
         assertEq(erc5643.expiresAt(tokenId), 31536001 + 2000 + currTime - 1);
 
         erc5643.cancelSubscription(tokenId);
@@ -139,7 +141,7 @@ contract ERC5643Test is Test {
 
     function testExtendSubscriptionInvalidToken() public {
         vm.expectRevert(InvalidTokenId.selector);
-        erc5643.renewSubscription{value: 0.1 ether}(tokenId + 100, 30 days);
+        erc5643.renewSubscription{value: 0.1 ether}(user1, tokenId + 100, 30 days);
     }
 
     function testRenewalDiscount() public {
@@ -148,14 +150,14 @@ contract ERC5643Test is Test {
 
         vm.expectEmit(true, true, false, true);
         emit SubscriptionUpdate(tokenId2, 365 days + 1000);
-        uint256 id = erc5643.mintTo{value: 1 ether}(user2, 123456, 123456, address(0));
+        uint256 id = erc5643.mintTo{value: 1 ether}(user2, user2, 123456, 123456, 123456, address(0), address(0));
         assertEq(erc5643.expiresAt(tokenId2), 365 days + 1000);
 
         vm.deal(user2, 1 ether);
         // without discount it's 1.2 eth
         vm.expectEmit(true, true, false, true);
         emit SubscriptionUpdate(tokenId2, 365 days + 365 days + 1000);
-        erc5643.renewSubscription{value: 1 ether}(tokenId2, 365 days);
+        erc5643.renewSubscription{value: 1 ether}(user2, tokenId2, 365 days);
         
     }
 

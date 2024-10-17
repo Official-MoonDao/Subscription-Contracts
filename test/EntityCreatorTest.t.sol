@@ -25,6 +25,7 @@ contract CreatorTest is Test {
         vm.deal(user2, 10 ether);
 
         Whitelist whitelist = new Whitelist();
+        whitelist.addToWhitelist(user1);
 
         Whitelist discountList = new Whitelist();
 
@@ -35,7 +36,7 @@ contract CreatorTest is Test {
 
     function testMint() public {
         vm.prank(user1);
-        creator.createMoonDAOTeam{value: 0.1 ether}(uri, uri, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+        creator.createMoonDAOTeam{value: 0.111 ether}(uri, uri, uri, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
     }
 
 
