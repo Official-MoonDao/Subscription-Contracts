@@ -17,7 +17,6 @@ contract Project is TablelandController, Ownable {
     constructor(string memory _table_prefix) Ownable(msg.sender) {
         _TABLE_PREFIX = _table_prefix;
         _tableId = TablelandDeployments.get().create(
-            // TODO set to this contract eg. address(this)
             address(msg.sender),
             SQLHelpers.toCreateFromSchema(
                 "id integer primary key,"
@@ -93,7 +92,6 @@ contract Project is TablelandController, Ownable {
         address caller,
         uint256
     ) public payable override returns (TablelandPolicy memory) {
-        // TODO restrict access to only the owner
         return
             TablelandPolicy({
                 allowInsert: true,
