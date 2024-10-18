@@ -21,11 +21,12 @@ module.exports = {
     verbose: false,
   },
   networks: {
-    hardhat: {
-    },
+    hardhat: {},
     sepolia: {
-      url: "https://public.stackup.sh/api/v1/node/ethereum-sepolia",
-      accounts: ["39ff551b4720232c1fca846f53458be45350e43ab5a00939aa56b2dc2c28098f"]
-    }
+      url: "https://1rpc.io/sepolia",
+      accounts: [
+        "39ff551b4720232c1fca846f53458be45350e43ab5a00939aa56b2dc2c28098f",
+      ],
+    },
   },
 };
