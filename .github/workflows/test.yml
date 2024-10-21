@@ -61,5 +61,5 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          ETHERSCAN_API_KEY="Y9MZ685PVCHY686V7MKFQXS8Z9Z6WTY4GZ" forge test --via-ir --fork-url http://localhost:8545 -vvv
+          ETHERSCAN_API_KEY="Y9MZ685PVCHY686V7MKFQXS8Z9Z6WTY4GZ" forge test --via-ir --fork-url http://localhost:8545 -vvvv
         id: test
