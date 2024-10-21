@@ -42,6 +42,11 @@ jobs:
           npm install
         id: install-dependencies
 
+      - name: Run Local Chain with Anvil
+        run: |
+          anvil &
+        id: local-chain
+
       - name: Run Hardhat Deployment Script
         run: |
           cd evm-tableland
@@ -51,10 +56,10 @@ jobs:
       - name: Run Forge build
         run: |
           forge --version
-          forge build --sizes --via-ir
+          forge build --sizes --via-ir --fork-url http://localhost:8545
         id: build
 
       - name: Run Forge tests
         run: |
-          forge test --via-ir -vvv
+          forge test --via-ir -vvv --fork-url http://localhost:8545
         id: test
