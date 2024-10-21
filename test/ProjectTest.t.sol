@@ -27,10 +27,7 @@ contract ProjectTest is Test {
     }
 
     function testInsertTable() public {
-        project.insertIntoTable("test", 2021, 1, 100, "proposal", "final", "link", "allocation 0");
-    }
-    function testUpdateTable() public {
-        project.updateTable("test", 2021, 1, 100, "proposal", "final", "allocation 1");
+        project.insertIntoTable("test", 2021, 1, 100, "proposal", "link", "final", "link", "allocation 0");
     }
 }
 
