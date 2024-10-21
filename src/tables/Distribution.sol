@@ -11,6 +11,10 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract Distribution is ERC721Holder, Ownable {
+    // Table for storing retroactive rewards votes.
+    // distribution is a json object with keys being project id
+    // from the project table and values being the percent
+    // allocated to that project.
     using ERC165Checker for address;
 
     uint256 private _tableId;

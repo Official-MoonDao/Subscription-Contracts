@@ -6,10 +6,12 @@ import {TablelandDeployments} from "@evm-tableland/contracts/utils/TablelandDepl
 import {TablelandController} from "@evm-tableland/contracts/TablelandController.sol";
 import {SQLHelpers} from "@evm-tableland/contracts/utils/SQLHelpers.sol";
 import {TablelandPolicy} from "@evm-tableland/contracts/TablelandPolicy.sol";
-import {MoonDAOTeam} from "../ERC5643.sol";
 
 
 contract Project is TablelandController, Ownable {
+    // Table for storing project information for retroactive rewards
+    // contributors is a json object with keys as contributor addresses
+    // and values as the percentage of rewards
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     uint256 public currId = 0;
