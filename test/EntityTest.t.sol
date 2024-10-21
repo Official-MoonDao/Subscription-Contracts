@@ -58,12 +58,12 @@ contract ERC5643Test is Test {
 
     function testMint() public {
       vm.prank(user1);
-      creator.createMoonDAOTeam{value: 0.1 ether}("", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+      creator.createMoonDAOTeam{value: 0.1 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId");
     }
 
     function testUpdateTable() public {
       vm.prank(user1);
-      (uint256 topHatId, uint256 hatId) = creator.createMoonDAOTeam{value: 0.1 ether}("", "", "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+      (uint256 topHatId, uint256 hatId) = creator.createMoonDAOTeam{value: 0.1 ether}("", "", "", "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
 
       // vm.prank(user4);
       // table.updateTable(0, hatId, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");

@@ -8,7 +8,7 @@ import "./GnosisSafeProxyFactory.sol";
 import "./GnosisSafeProxy.sol";
 import {MoonDaoTeamTableland} from "./tables/MoonDaoTeamTableland.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Whitelist} from "./WhiteList.sol";
+import {Whitelist} from "./Whitelist.sol";
 import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
 import {PassthroughModule} from "./PassthroughModule.sol";
