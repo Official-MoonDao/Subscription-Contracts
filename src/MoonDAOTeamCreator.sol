@@ -42,7 +42,6 @@ contract MoonDAOTeamCreator is Ownable {
         gnosisSingleton = _gnosisSingleton;
         hatsPassthrough = _hatsPassthrough;
         gnosisSafeProxyFactory = GnosisSafeProxyFactory(_gnosisSafeProxyFactory);
-        //hatsModuleFactory = HatsModuleFactory(0x0a3f85fa597B6a967271286aA0724811acDF5CD9);
         hatsModuleFactory = HatsModuleFactory(_hatsModuleFactory);
 
         table = MoonDaoTeamTableland(_table);
@@ -79,7 +78,6 @@ contract MoonDAOTeamCreator is Ownable {
         uint256 teamMemberHat = hats.createHat(teamManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
 
         //member hat passthrough module (allow admin hat to control member hat)
-        //PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, 0x050079a8fbFCE76818C62481BA015b89567D2d35, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
         PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, hatsPassthrough, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
 
 

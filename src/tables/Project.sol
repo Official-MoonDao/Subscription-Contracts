@@ -39,9 +39,9 @@ contract Project is TablelandController, Ownable {
     // Let anyone insert into the table
     function insertIntoTable(string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external {
         string memory setters = string.concat(
-                Strings.toString(currId), // Convert to a string
+                Strings.toString(currId),
                 ",",
-                SQLHelpers.quote(title), // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(title),
                 ",",
                 Strings.toString(quarter),
                 ",",
@@ -49,15 +49,15 @@ contract Project is TablelandController, Ownable {
                 ",",
                 Strings.toString(MDP),
                 ",",
-                SQLHelpers.quote(proposalIPFS), // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(proposalIPFS),
                 ",",
-                SQLHelpers.quote(proposalLink), // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(proposalLink),
                 ",",
-                SQLHelpers.quote(finalReportIPFS), // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(finalReportIPFS),
                 ",",
-                SQLHelpers.quote(finalReportLink), // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(finalReportLink),
                 ",",
-                SQLHelpers.quote(contributors) // Wrap strings in single quotes with the `quote` method
+                SQLHelpers.quote(contributors)
         );
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract

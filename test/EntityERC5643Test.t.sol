@@ -41,16 +41,6 @@ contract ERC5643Test is Test {
         assertEq(after_ - before, 0.555 ether);
     }
 
-    function testAdminSetURI() public {
-        vm.deal(user3, 10 ether);
-        // vm.prank(user3);
-        // uint256 tokenId = team.mintTo{value: 0.1 ether}(user2, uri);
-        // vm.prank(user3);
-        // team.setTokenURI(tokenId, "https://reandom.com");
-        // string memory tokenURI = team.tokenURI(tokenId);
-        // assertEq(tokenURI, "https://reandom.com");
-    }
-
 
     function testRenewalInvalidTokenId() public {
         vm.prank(user1);
@@ -114,7 +104,6 @@ contract ERC5643Test is Test {
         emit SubscriptionUpdate(tokenId, 0);
         vm.prank(user3);
         team.cancelSubscription(tokenId);
-        //vm.stopPrank();
     }
 
     function testCancelNotOwner() public {
@@ -126,7 +115,7 @@ contract ERC5643Test is Test {
         uint256 currTime = block.timestamp;
         vm.warp(1000);
 
-        // price per seconds * 0.111 = seconds
+        // price per second * 0.111 = price
         assertEq(team.expiresAt(tokenId), 1761258075 + currTime);
         vm.startPrank(user3);
         team.renewSubscription{value: 0.1 ether}(user1, tokenId, 2000);
@@ -161,7 +150,6 @@ contract ERC5643Test is Test {
         assertEq(team.expiresAt(tokenId2), 365 days + 1000);
 
         vm.deal(user2, 1 ether);
-        // without discount it's 1.2 eth
         vm.expectEmit(true, true, false, true);
         emit SubscriptionUpdate(tokenId2, 365 days + 365 days + 1000);
         team.renewSubscription{value: 1 ether}(user2, tokenId2, 365 days);

@@ -17,9 +17,6 @@ import {Hats} from "@hats/Hats.sol";
 
 contract CreatorTest is Test {
     event SubscriptionUpdate(uint256 indexed tokenId, uint64 expiration);
-    //string public constant baseImageURI = "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4";
-
-    //string public constant name = "Hats Protocol v1"; // increment this each deployment
 
     bytes32 internal constant SALT = bytes32(abi.encode(0x4a75)); // ~ H(4) A(a) T(7) S(5)
 
@@ -53,7 +50,6 @@ contract CreatorTest is Test {
         Whitelist whitelist = new Whitelist();
         Whitelist discountList = new Whitelist();
 
-        //whitelist.addToWhitelist(user1);
         table = new MoonDaoTeamTableland("team");
 
         team = new MoonDAOTeam("erc5369", "ERC5643", user4, address(hats), address(discountList));
@@ -69,7 +65,6 @@ contract CreatorTest is Test {
         team.setMoonDaoCreator(address(creator));
 
         hats.mintHat(moonDaoTeamAdminHatId, address(creator));
-        //hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
         vm.stopPrank();
     }
 
