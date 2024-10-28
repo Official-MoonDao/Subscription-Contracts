@@ -4,47 +4,80 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/ERC5643.sol";
+import "../src/GnosisSafeProxyFactory.sol";
+import {PassthroughModule} from "../src/PassthroughModule.sol";
+import {IHats} from "@hats/Interfaces/IHats.sol";
+import {Hats} from "@hats/Hats.sol";
+import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
+import {deployModuleFactory} from "@hats-module/utils/DeployFunctions.sol";
 import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
+import {MoonDaoTeamTableland} from "../src/tables/MoonDaoTeamTableland.sol";
 import {Whitelist} from "../src/Whitelist.sol";
 import {Hats} from "@hats/Hats.sol";
 
 contract CreatorTest is Test {
     event SubscriptionUpdate(uint256 indexed tokenId, uint64 expiration);
-    string public constant baseImageURI = "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4";
+    //string public constant baseImageURI = "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4";
 
-    string public constant name = "Hats Protocol v1"; // increment this each deployment
+    //string public constant name = "Hats Protocol v1"; // increment this each deployment
 
     bytes32 internal constant SALT = bytes32(abi.encode(0x4a75)); // ~ H(4) A(a) T(7) S(5)
 
-    address user1 = address(0x1);
+    address user1 = address(0x43b8880beE7fAb93F522AC8e121FF13fB77AF711);
     address user2 = address(0x2);
     address user3 = address(0x3);
+    address user4 = address(0xd1916F254866E4e70abA86F0dD668DD5942E032a);
     uint256 tokenId = 0;
     uint256 tokenId2 = 1;
     uint256 tokenId3= 2;
     string uri = "https://test.com";
-    MoonDAOTeam erc5643;
+    address TREASURY = user4;
+    MoonDAOTeam team;
+    MoonDaoTeamTableland table;
     MoonDAOTeamCreator creator;
 
     function setUp() public {
         vm.deal(user1, 10 ether);
         vm.deal(user2, 10 ether);
+        vm.startPrank(user4);
+
+
+        Hats hatsBase = new Hats("", "");
+        IHats hats = IHats(address(hatsBase));
+        HatsModuleFactory hatsFactory = deployModuleFactory(hats, SALT, "");
+        PassthroughModule passthrough = new PassthroughModule("");
+        address gnosisSafeAddress = address(0x0165878A594ca255338adfa4d48449f69242Eb8F);
+        GnosisSafeProxyFactory proxyFactory = new GnosisSafeProxyFactory();
+
 
         Whitelist whitelist = new Whitelist();
-        whitelist.addToWhitelist(user1);
-
         Whitelist discountList = new Whitelist();
-        Hats hats = new Hats{ salt: SALT }(name, baseImageURI);
 
-        erc5643 = new MoonDAOTeam("erc5369", "ERC5643", 0xF69ed83F805c0C271f1A7094d5092Dc0cAFa7008, address(hats), address(discountList));
-        // TODO
-        creator = new MoonDAOTeamCreator(address(hats), address(erc5643), 0xfb1bffC9d739B8D520DaF37dF666da4C687191EA, 0xC22834581EbC8527d974F8a1c97E1bEA4EF910BC, address(hats), address(whitelist));
+        //whitelist.addToWhitelist(user1);
+        table = new MoonDaoTeamTableland("team");
+
+        team = new MoonDAOTeam("erc5369", "ERC5643", user4, address(hats), address(discountList));
+        creator = new MoonDAOTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(team), gnosisSafeAddress, address(proxyFactory), address(table), address(whitelist));
+
+        creator.setOpenAccess(true);
+
+        table.setMoonDaoTeam(address(team));
+        uint256 topHatId = hats.mintTopHat(user4, "", "");
+        uint256 moonDaoTeamAdminHatId = hats.createHat(topHatId, "", 1, TREASURY, TREASURY, true, "");
+
+        creator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
+        team.setMoonDaoCreator(address(creator));
+
+        hats.mintHat(moonDaoTeamAdminHatId, address(creator));
+        //hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
+        vm.stopPrank();
     }
 
     function testMint() public {
         vm.prank(user1);
-        creator.createMoonDAOTeam{value: 0.111 ether}(uri, uri, uri, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+        creator.createMoonDAOTeam{value: 0.555 ether}(uri, uri, uri, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
     }
+
 
 
 

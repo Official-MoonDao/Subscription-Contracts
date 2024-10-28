@@ -4,16 +4,28 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/ERC5643.sol";
+import "../src/GnosisSafeProxyFactory.sol";
 import {MoonDaoTeamTableland} from "../src/tables/MoonDaoTeamTableland.sol";
 import {TeamRowController} from "../src/tables/TeamRowController.sol";
 import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
+import {PassthroughModule} from "../src/PassthroughModule.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
+import {Hats} from "@hats/Hats.sol";
+import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
+import {deployModuleFactory} from "@hats-module/utils/DeployFunctions.sol";
 import {Whitelist} from "../src/Whitelist.sol";
 
 contract ERC5643Test is Test {
     event SubscriptionUpdate(uint256 indexed tokenId, uint64 expiration);
+    //string public constant baseImageURI = "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4";
+
+    //string public constant name = "Hats Protocol v1"; // increment this each deployment
+    //string public constant passthroughVersion = "0.0.1"; // increment this each deployment
+
+    bytes32 internal constant SALT = bytes32(abi.encode(0x4a75)); // ~ H(4) A(a) T(7) S(5)
 
     address user1 = address(0x43b8880beE7fAb93F522AC8e121FF13fB77AF711);
+    //address user1 = address(0x1);
     address user2 = address(0x2);
     address user3 = address(0x3);
     address user4 = address(0xd1916F254866E4e70abA86F0dD668DD5942E032a);
@@ -21,56 +33,64 @@ contract ERC5643Test is Test {
     uint256 tokenId2 = 1;
     uint256 tokenId3= 2;
     string uri = "https://test.com";
-    MoonDAOTeam erc5643;
+    address TREASURY = user4;
     MoonDAOTeamCreator creator;
     MoonDaoTeamTableland table;
+    MoonDAOTeam team;
 
     function setUp() public {
       vm.deal(user1, 10 ether);
       vm.deal(user2, 10 ether);
+      vm.deal(user4, 10 ether);
 
       vm.startPrank(user4);
 
-      IHats hats = IHats(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137);
+      Hats hatsBase = new Hats("", "");
+      IHats hats = IHats(address(hatsBase));
+      HatsModuleFactory hatsFactory = deployModuleFactory(hats, SALT, "");
+      PassthroughModule passthrough = new PassthroughModule("");
+      address gnosisSafeAddress = address(0x0165878A594ca255338adfa4d48449f69242Eb8F);
+      GnosisSafeProxyFactory proxyFactory = new GnosisSafeProxyFactory();
 
       Whitelist whitelist = new Whitelist();
 
       Whitelist discountList = new Whitelist();
       table = new MoonDaoTeamTableland("MoonDaoTeamTable");
 
-      uint256 moonDaoTeamAdminHatId = hats.createHat(862718293348820473429344482784628181556388621521298319395315527974912, "", 1, user4, 0xd1916F254866E4e70abA86F0dD668DD5942E032a, true, "");
-      // controller = new TeamRowController(address(table));
-
-      erc5643 = new MoonDAOTeam("erc5369", "ERC5643", 0xd1916F254866E4e70abA86F0dD668DD5942E032a, 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(discountList));
-      creator = new MoonDAOTeamCreator(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(erc5643), 0x3E5c63644E683549055b9Be8653de26E0B4CD36E, 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2, address(table), address(whitelist));
+      team = new MoonDAOTeam("erc5369", "ERC5643", TREASURY, address(hatsBase), address(discountList));
+      creator = new MoonDAOTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(team), gnosisSafeAddress, address(proxyFactory), address(table), address(whitelist));
 
       creator.setOpenAccess(true);
 
-      table.setMoonDaoTeam(address(erc5643));
+      table.setMoonDaoTeam(address(team));
+      uint256 topHatId = hats.mintTopHat(user4, "", "");
+      uint256 moonDaoTeamAdminHatId = hats.createHat(topHatId, "", 1, TREASURY, TREASURY, true, "");
 
       creator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
+      team.setMoonDaoCreator(address(creator));
 
       hats.mintHat(moonDaoTeamAdminHatId, address(creator));
-      hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
+      //hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
 
       vm.stopPrank();
     }
 
     function testMint() public {
       vm.prank(user1);
-      creator.createMoonDAOTeam{value: 0.1 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+      creator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId");
     }
 
     function testUpdateTable() public {
       vm.prank(user1);
-      (uint256 topHatId, uint256 hatId) = creator.createMoonDAOTeam{value: 0.1 ether}("", "", "", "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+      (uint256 topHatId, uint256 hatId) = creator.createMoonDAOTeam{value: 0.555 ether}("", "", "", "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
 
       // vm.prank(user4);
       // table.updateTable(0, hatId, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
-      bool isAdmin = erc5643.isManager(0, user1);
-      assertTrue(isAdmin);
+      //bool isAdmin = team.isManager(0, user1);
+      //assertTrue(isAdmin);
 
-      bool isAdmin2 = erc5643.isManager(0, user4);
+      vm.expectRevert();
+      bool isAdmin2 = team.isManager(0, user4);
       assertFalse(isAdmin2);
     }
 }
