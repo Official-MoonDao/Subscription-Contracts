@@ -30,13 +30,38 @@ jobs:
         with:
           version: nightly
 
+      - name: Clone EVM Tableland Repository
+        run: |
+          git clone https://github.com/tablelandnetwork/evm-tableland.git
+          cd evm-tableland
+        id: clone
+
+      - name: Install dependencies
+        run: |
+          cd evm-tableland
+          npm install
+        id: install-dependencies
+
+      - name: Run Local Chain with Anvil
+        run: |
+          anvil &
+        id: local-chain
+
+      - name: Run Hardhat Deployment Script
+        run: |
+          cd evm-tableland
+          npx hardhat run scripts/deploy.ts --network localhost
+        id: deploy
+
       - name: Run Forge build
         run: |
           forge --version
-          forge build --sizes
+          forge build --sizes --via-ir
         id: build
 
       - name: Run Forge tests
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: |
-          forge test -vvv
+          forge test --via-ir --fork-url http://localhost:8545 -vvvv
         id: test

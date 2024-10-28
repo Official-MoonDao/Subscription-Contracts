@@ -8,7 +8,7 @@ import "./GnosisSafeProxyFactory.sol";
 import "./GnosisSafeProxy.sol";
 import {MoonDaoTeamTableland} from "./tables/MoonDaoTeamTableland.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Whitelist} from "./WhiteList.sol";
+import {Whitelist} from "./Whitelist.sol";
 import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
 import {PassthroughModule} from "./PassthroughModule.sol";
@@ -22,6 +22,8 @@ contract MoonDAOTeamCreator is Ownable {
 
     address internal gnosisSingleton;
 
+    address internal hatsPassthrough;
+
     GnosisSafeProxyFactory internal gnosisSafeProxyFactory;
 
     HatsModuleFactory internal hatsModuleFactory;
@@ -34,12 +36,14 @@ contract MoonDAOTeamCreator is Ownable {
 
     bool public openAccess;
 
-    constructor(address _hats, address _moonDAOTeam, address _gnosisSingleton, address _gnosisSafeProxyFactory, address _table, address _whitelist) Ownable(msg.sender) {
+    constructor(address _hats, address _hatsModuleFactory, address _hatsPassthrough, address _moonDAOTeam, address _gnosisSingleton, address _gnosisSafeProxyFactory, address _table, address _whitelist) Ownable(msg.sender) {
         hats = IHats(_hats);
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
         gnosisSingleton = _gnosisSingleton;
+        hatsPassthrough = _hatsPassthrough;
         gnosisSafeProxyFactory = GnosisSafeProxyFactory(_gnosisSafeProxyFactory);
-        hatsModuleFactory = HatsModuleFactory(0x0a3f85fa597B6a967271286aA0724811acDF5CD9);
+        hatsModuleFactory = HatsModuleFactory(_hatsModuleFactory);
+
         table = MoonDaoTeamTableland(_table);
         whitelist = Whitelist(_whitelist);
     }
@@ -74,7 +78,8 @@ contract MoonDAOTeamCreator is Ownable {
         uint256 teamMemberHat = hats.createHat(teamManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
 
         //member hat passthrough module (allow admin hat to control member hat)
-        PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, 0x050079a8fbFCE76818C62481BA015b89567D2d35, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
+        PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, hatsPassthrough, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
+
 
         hats.changeHatEligibility(teamMemberHat, address(memberPassthroughModule));
         hats.changeHatToggle(teamMemberHat, address(memberPassthroughModule));

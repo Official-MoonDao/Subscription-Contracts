@@ -260,7 +260,7 @@ contract MoonDAOTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
      * @dev See {IERC5643Team-cancelSubscription}.
      */
     function cancelSubscription(uint256 tokenId) external payable virtual {
-        if (!_isApprovedOrOwner(msg.sender, tokenId) || _msgSender() == owner()) {
+        if (!(_isApprovedOrOwner(msg.sender, tokenId) || _msgSender() == owner())) {
             revert CallerNotOwnerNorApproved();
         }
 
