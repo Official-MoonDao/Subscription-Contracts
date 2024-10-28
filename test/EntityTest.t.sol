@@ -17,15 +17,10 @@ import {Whitelist} from "../src/Whitelist.sol";
 
 contract ERC5643Test is Test {
     event SubscriptionUpdate(uint256 indexed tokenId, uint64 expiration);
-    //string public constant baseImageURI = "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4";
-
-    //string public constant name = "Hats Protocol v1"; // increment this each deployment
-    //string public constant passthroughVersion = "0.0.1"; // increment this each deployment
 
     bytes32 internal constant SALT = bytes32(abi.encode(0x4a75)); // ~ H(4) A(a) T(7) S(5)
 
     address user1 = address(0x43b8880beE7fAb93F522AC8e121FF13fB77AF711);
-    //address user1 = address(0x1);
     address user2 = address(0x2);
     address user3 = address(0x3);
     address user4 = address(0xd1916F254866E4e70abA86F0dD668DD5942E032a);
@@ -70,7 +65,6 @@ contract ERC5643Test is Test {
       team.setMoonDaoCreator(address(creator));
 
       hats.mintHat(moonDaoTeamAdminHatId, address(creator));
-      //hats.changeHatEligibility(moonDaoTeamAdminHatId, address(creator));
 
       vm.stopPrank();
     }
