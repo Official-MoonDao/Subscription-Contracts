@@ -9,7 +9,12 @@ forge install
 
 ## Deploy a contract
 
-`PRIVATE_KEY=<PRIVATE_KEY> forge script script/Project.s.sol:MyScript --via-ir --rpc-url https://arb1.arbitrum.io/rpc --broadcast --verify -vv`
+```sh
+# arbitrum mainnet
+PRIVATE_KEY=<PRIVATE_KEY> forge script script/Project.s.sol:MyScript --via-ir --rpc-url https://arb1.arbitrum.io/rpc --broadcast --verify -vv
+# sepolia
+PRIVATE_KEY=<PRIVATE_KEY> forge script script/Competitor.s.sol:MyScript --via-ir --rpc-url https://1rpc.io/sepolia --broadcast --verify -vv
+```
 
 ### Running tests on test chain
 
