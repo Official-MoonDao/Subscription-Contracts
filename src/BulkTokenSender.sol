@@ -7,25 +7,11 @@ interface IERC20Interface {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-contract BulkTokenSender {
-    // Function to send an ERC20 token to multiple recipients
-    function send(
-        address token,               // Address of the ERC20 token contract
-        address[] memory recipients,  // Array of recipient addresses
-        uint256[] memory amounts      // Array of amounts to send to each recipient
-    ) public {
-        require(recipients.length == amounts.length, "Recipients and amounts length mismatch");
+contract DePrize {
 
-        IERC20Interface tokenContract = IERC20Interface(token);  // Initialize the token contract interface
-
-        for (uint256 i = 0; i < recipients.length; i++) {
-            require(tokenContract.transferFrom(msg.sender, recipients[i], amounts[i]), "Token transfer failed");
-        }
-    }
-
-
-    function uploadAllocationResult(address[] memory recipients, uint256[] memory percents) public {
+    function uploadSplit(address[] memory recipients, uint256[] memory percents) public {
         assert(recipients.length == percents.length);
+        assert(winner == address(0));
     
         // get current timestamp
         uint256 currentTimestamp = block.timestamp;
@@ -46,22 +32,26 @@ contract BulkTokenSender {
                 currentAmounts[i] += timeSinceLastUpdate * totalPrizeAllocationPerSecond * currentSplitPercent[i];
             }
 
-            
             // update the current split percent
             currentSplitPercent[i] = percents[i];
         }
     }
 
 
-    function claimAllocation(address token) public {
+    function claimRewards(address token) public {
         // get current timestamp
         uint256 currentTimestamp = block.timestamp;
         // find the difference between the current timestamp and the last allocation update timestamp
         uint256 timeSinceLastUpdate = currentTimestamp - lastAllocationUpdateTimestamp;
-                lastAllocationUpdateTimestamp = currentTimestamp;
+        lastAllocationUpdateTimestamp = currentTimestamp;
 
         for (uint256 i = 0; i < currentRecipients.length; i++) {
-            currentAmounts[i] += timeSinceLastUpdate * totalPrizeAllocationPerSecond * currentSplitPercent[i];
+
+            if (winner != address(0)) {
+                uint256 increment = timeSinceLastUpdate * totalPrizeAllocationPerSecond * currentSplitPercent[i];
+                currentAmounts[i] += increment;
+                totalPrize -= increment;
+            }
 
             if (currentRecipients[i] == msg.sender) {
                 uint256 amountToWithdraw = currentAmounts[i];
@@ -70,13 +60,13 @@ contract BulkTokenSender {
                 require(tokenContract.transfer(msg.sender, amountToWithdraw), "Token transfer failed");
             }
         }
-
-
     }
 
 
-
     function addPrize(address token, uint256 amount) public {
+        // Can only add prize before the winner is set
+        assert(winner == address(0));
+
         IERC20Interface tokenContract = IERC20Interface(token);  // Initialize the token contract interface
         // transfer the amount from the user to the contract
         require(tokenContract.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
@@ -89,6 +79,42 @@ contract BulkTokenSender {
     }
 
 
+    function setWinner(address winnerAddress, address[] memory voterRewardsRecipients, uint256[] memory voterRewardsPercents) public {
+        assert(winner == address(0));
+        
+        // get current timestamp
+        uint256 currentTimestamp = block.timestamp;
+        // find the difference between the current timestamp and the last allocation update timestamp
+        uint256 timeSinceLastUpdate = currentTimestamp - lastAllocationUpdateTimestamp;
+        lastAllocationUpdateTimestamp = currentTimestamp;
+
+        uint256 winnerID = 0;
+        for (uint256 i = 0; i < currentRecipients.length; i++) {
+            uint256 increment = timeSinceLastUpdate * totalPrizeAllocationPerSecond * currentSplitPercent[i];
+            currentAmounts[i] += increment;
+            totalPrize -= increment;
+
+            if (currentRecipients[i] == winnerAddress) {
+                winnerID = i;
+                winner = winnerAddress;
+            }
+        }
+
+        // Calculate the winner's reward
+        uint256 winnerReward = totalPrize * 75 / 100;
+        currentAmounts[winnerID] += winnerReward;
+        totalPrize -= winnerReward;
+
+        // Calculate the voter rewards
+        uint256 voterReward = totalPrize * 25 / 100;
+        for (uint256 i = 0; i < voterRewardsRecipients.length; i++) {
+            uint256 voterRewardAmount = voterReward * voterRewardsPercents[i] / 100;
+            currentRecipients.push(voterRewardsRecipients[i]);
+            currentAmounts.push(voterRewardAmount);
+        }
+    }
+
+
     // Total amount of $PRIZE
     uint256 public totalPrize;
 
@@ -97,7 +123,6 @@ contract BulkTokenSender {
 
     // Last timestamp when allocations were updated
     uint256 public lastAllocationUpdateTimestamp;
-
 
     // Current recipients of the allocation
     address[] public currentRecipients;
@@ -108,4 +133,6 @@ contract BulkTokenSender {
     // Current amounts of the allocation
     uint256[] public currentAmounts;
 
+    // Winner of the prize
+    address public winner = address(0);
 }
