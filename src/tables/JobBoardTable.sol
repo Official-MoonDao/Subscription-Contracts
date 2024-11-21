@@ -24,6 +24,10 @@ contract JobBoardTable is ERC721Holder, Ownable {
                 "title text,"
                 "description text,"
                 "teamId integer,"
+                "tag text,"
+                "metadata text,"
+                "endTime integer,"
+                "timestamp integer,"
                 "contactInfo text",
                 _TABLE_PREFIX
             )
@@ -35,7 +39,7 @@ contract JobBoardTable is ERC721Holder, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory title, string memory description, uint256 teamId, string memory contactInfo) external {
+    function insertIntoTable(string memory title, string memory description, uint256 teamId, string memory tag, string memory metadata, uint256 endTime, uint256 timestamp, string memory contactInfo) external {
         if (msg.sender != owner()) {
             require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can insert");
         }
@@ -48,6 +52,14 @@ contract JobBoardTable is ERC721Holder, Ownable {
                 ",",
                 Strings.toString(teamId),
                 ",",
+                SQLHelpers.quote(tag),
+                ",",
+                SQLHelpers.quote(metadata),
+                ",",
+                Strings.toString(endTime),
+                ",",
+                Strings.toString(timestamp),
+                ",",
                 SQLHelpers.quote(contactInfo) // Wrap strings in single quotes with the `quote` method
         );
         TablelandDeployments.get().mutate(
@@ -56,7 +68,7 @@ contract JobBoardTable is ERC721Holder, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,description,teamId,contactInfo",
+                "id,title,description,teamId,tag,metadata,endTime,timestamp,contactInfo",
                 setters
             )
         );
@@ -64,7 +76,7 @@ contract JobBoardTable is ERC721Holder, Ownable {
         currId += 1;
     }
 
-    function updateTable(uint256 id, string memory title, string memory description, uint256 teamId, string memory contactInfo) external {
+    function updateTable(uint256 id, string memory title, string memory description, uint256 teamId, string memory tag, string memory metadata, uint256 endTime, uint256 timestamp, string memory contactInfo) external {
         
         if (msg.sender != owner()) {
             require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can update");
@@ -77,6 +89,14 @@ contract JobBoardTable is ERC721Holder, Ownable {
             SQLHelpers.quote(title),
             ",description=",
             SQLHelpers.quote(description),
+            ",tag=",
+            SQLHelpers.quote(tag),
+            ",metadata=",
+            SQLHelpers.quote(metadata),
+            ",endTime=",
+            Strings.toString(endTime),
+            ",timestamp=",
+            Strings.toString(timestamp),
             ",contactInfo=",
             SQLHelpers.quote(contactInfo)
         );
