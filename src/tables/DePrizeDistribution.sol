@@ -20,7 +20,7 @@ contract DePrizeDistribution is ERC721Holder, Ownable {
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     string private constant DEPRIZE_VOTE_SCHEMA =
-        "id integer primary key, deprize integer, quarter integer, year integer, address text, distribution text, unique(deprize, quarter, year, address)";
+        "id integer primary key, deprize integer, timestamp integer, address text, distribution text";
 
     constructor(string memory _table_prefix) Ownable(msg.sender)  {
         _TABLE_PREFIX = _table_prefix;
@@ -30,20 +30,18 @@ contract DePrizeDistribution is ERC721Holder, Ownable {
         );
     }
 
-    function insertIntoTable(uint256 deprize, uint256 quarter, uint256 year, string memory distribution) external {
+    function insertIntoTable(uint256 deprize, string memory distribution) external {        
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
             _tableId,
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "deprize,quarter,year,address,distribution",
+                "deprize,timestamp,address,distribution",
                 string.concat(
                     Strings.toString(deprize),
                     ",",
-                    Strings.toString(quarter),
-                    ",",
-                    Strings.toString(year),
+                    Strings.toString(block.timestamp),
                     ",",
                     SQLHelpers.quote(Strings.toHexString(msg.sender)),
                     ",",
@@ -52,50 +50,6 @@ contract DePrizeDistribution is ERC721Holder, Ownable {
                     ")"
                 )
             )
-        );
-    }
-
-    function updateTableCol(uint256 deprize, uint256 quarter, uint256 year, string memory distribution) external {
-        TablelandDeployments.get().mutate(
-            address(this), // Table owner, i.e., this contract
-            _tableId,
-            SQLHelpers.toUpdate(
-                _TABLE_PREFIX,
-                _tableId,
-                string.concat(
-                "distribution=",
-                    "json(",
-                    SQLHelpers.quote(distribution),
-                    ")"
-                ),
-                string.concat(
-                    "deprize = ",
-                    Strings.toString(deprize),
-                    "quarter = ",
-                    Strings.toString(quarter),
-                    " AND year = ",
-                    Strings.toString(year),
-                    " AND address = ",
-                    SQLHelpers.quote(Strings.toHexString(msg.sender))
-                )
-            )
-        );
-    }
-
-    function deleteFromTable(uint256 deprize, uint256 quarter, uint256 year) external {
-        TablelandDeployments.get().mutate(
-            address(this),
-            _tableId,
-            SQLHelpers.toDelete(_TABLE_PREFIX, _tableId,
-                string.concat(
-                    "quarter = ",
-                    Strings.toString(quarter),
-                    " AND year = ",
-                    Strings.toString(year),
-                    " AND address = ",
-                    SQLHelpers.quote(Strings.toHexString(msg.sender))
-                )
-)
         );
     }
 
