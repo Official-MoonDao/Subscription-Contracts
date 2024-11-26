@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract DePrizeDistribution is ERC721Holder, Ownable {
     // Table for storing retroactive rewards votes.
@@ -20,28 +21,35 @@ contract DePrizeDistribution is ERC721Holder, Ownable {
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     string private constant DEPRIZE_VOTE_SCHEMA =
-        "id integer primary key, deprize integer, timestamp integer, address text, distribution text";
+        "id integer primary key, deprize integer, timestamp integer, token_balance integer, address text, distribution text";
+    address public _prizeContract;
 
-    constructor(string memory _table_prefix) Ownable(msg.sender)  {
+    constructor(string memory _table_prefix, address _prize_contract) Ownable(msg.sender)  {
         _TABLE_PREFIX = _table_prefix;
         _tableId = TablelandDeployments.get().create(
             address(this),
             SQLHelpers.toCreateFromSchema(DEPRIZE_VOTE_SCHEMA, _TABLE_PREFIX)
         );
+        _prizeContract = _prize_contract;
     }
 
     function insertIntoTable(uint256 deprize, string memory distribution) external {        
+        
+        uint256 prize_tokens = IERC20(_prizeContract).balanceOf(address(this));
+        
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
             _tableId,
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "deprize,timestamp,address,distribution",
+                "deprize,timestamp,token_balance,address,distribution",
                 string.concat(
                     Strings.toString(deprize),
                     ",",
                     Strings.toString(block.timestamp),
+                    ",",
+                    Strings.toString(prize_tokens),
                     ",",
                     SQLHelpers.quote(Strings.toHexString(msg.sender)),
                     ",",
