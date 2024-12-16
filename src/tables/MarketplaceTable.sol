@@ -15,6 +15,10 @@ contract MarketplaceTable is ERC721Holder, Ownable {
     uint256 public currId = 0;
     mapping(uint256 => uint256) public idToTeamId;
 
+    event ListingInserted(uint256 indexed id, uint256 indexed teamId);
+    event ListingUpdated(uint256 indexed id, uint256 indexed teamId);
+    event ListingDeleted(uint256 indexed id, uint256 indexed teamId);
+
     constructor(string memory _table_prefix) Ownable(msg.sender) {
         _TABLE_PREFIX = _table_prefix;
         _tableId = TablelandDeployments.get().create(
@@ -85,6 +89,7 @@ contract MarketplaceTable is ERC721Holder, Ownable {
             )
         );
         idToTeamId[currId] = teamId;
+        emit ListingInserted(currId, teamId);
         currId += 1;
     }
 
@@ -131,12 +136,13 @@ contract MarketplaceTable is ERC721Holder, Ownable {
             _tableId,
             SQLHelpers.toUpdate(_TABLE_PREFIX, _tableId, setters, filters)
         );
+        emit ListingUpdated(id, teamId);
     }
 
     // Update only the row that the caller inserted
     function updateTableCol(uint256 id, uint256 teamId, string memory colName, string memory val) external {
-        require (Strings.equal(colName, "id"), "Cannot update id");
-        require (Strings.equal(colName, "teamId"), "Cannot update teamId");
+        require (Strings.equal(colName, "id") == false, "Cannot update id");
+        require (Strings.equal(colName, "teamId") == false, "Cannot update teamId");
         if (msg.sender != owner()) {
             require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can update");
         }
@@ -154,6 +160,7 @@ contract MarketplaceTable is ERC721Holder, Ownable {
             _tableId,
             SQLHelpers.toUpdate(_TABLE_PREFIX, _tableId, setters, filters)
         );
+        emit ListingUpdated(id, teamId);
     }
 
 
@@ -176,6 +183,7 @@ contract MarketplaceTable is ERC721Holder, Ownable {
             _tableId,
             SQLHelpers.toDelete(_TABLE_PREFIX, _tableId, filters)
         );
+        emit ListingDeleted(id, teamId);
     }
 
     // Set the ACL controller to enable row-level writes with dynamic policies
