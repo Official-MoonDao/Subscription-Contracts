@@ -59,6 +59,37 @@ contract TestBulkTokenSender is Test {
         assertEq(mockToken.balanceOf(sender), 500 * 10**18); // Sender should have 500 tokens left
     }
 
+    function testUploadAllocationResult() public {
+        // Set up recipients and percents
+        address[] memory recipients = new address[](3);
+        recipients[0] = recipient1;
+        recipients[1] = recipient2;
+        recipients[2] = recipient3;
+
+        uint256[] memory percents = new uint256[](3);
+        percents[0] = 10;
+        percents[1] = 20;
+        percents[2] = 30;
+
+        // Call the uploadAllocationResult function
+        vm.prank(sender);
+        bulkTokenSender.uploadAllocationResult(recipients, percents);
+
+        // Assert that the current recipients, amounts, and split percents have been updated correctly
+        assertEq(bulkTokenSender.currentRecipients(0), recipient1);
+        assertEq(bulkTokenSender.currentRecipients(1), recipient2);
+        assertEq(bulkTokenSender.currentRecipients(2), recipient3);
+
+        assertEq(bulkTokenSender.currentAmounts(0), 0);
+        assertEq(bulkTokenSender.currentAmounts(1), 0);
+        assertEq(bulkTokenSender.currentAmounts(2), 0);
+
+        assertEq(bulkTokenSender.currentSplitPercent(0), 10);
+        assertEq(bulkTokenSender.currentSplitPercent(1), 20);
+        assertEq(bulkTokenSender.currentSplitPercent(2), 30);
+    }
+
+
     //function testRevertsOnMismatchedArrays() public {
         //// Set up recipients and amounts with mismatched lengths
         //address[] memory recipients = new address[](2);

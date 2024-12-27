@@ -71,7 +71,7 @@ contract DePrizeDistribution is ERC721Holder, Ownable {
                 string.concat(
                     "deprize = ",
                     Strings.toString(deprize),
-                    "quarter = ",
+                    " AND quarter = ",
                     Strings.toString(quarter),
                     " AND year = ",
                     Strings.toString(year),

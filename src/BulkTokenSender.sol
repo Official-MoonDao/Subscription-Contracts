@@ -23,6 +23,12 @@ contract BulkTokenSender {
         }
     }
 
+    function setWinner(address token, address winner, uint256 amount) public {
+        IERC20Interface tokenContract = IERC20Interface(token);  // Initialize the token contract interface
+        // transfer the amount from the user to the contract
+        require(tokenContract.transferFrom(msg.sender, winner, amount), "Token transfer failed");
+    }
+
 
     function uploadAllocationResult(address[] memory recipients, uint256[] memory percents) public {
         assert(recipients.length == percents.length);

@@ -14,33 +14,36 @@ contract Competitor is TablelandController, Ownable {
     // and values as the percentage of rewards
     uint256 private _tableId;
     string private _TABLE_PREFIX;
-    uint256 public currId = 0;
+    // mapping from deprizeId to current id
+    mapping(uint256 => uint256) public deprizeIdToCurrId;
+    // mapping from deprizeId to mapping from id to teamId
+    mapping(uint256 => mapping(uint256 => uint256)) public deprizeIdToIdToTeamId;
 
     constructor(string memory _table_prefix) Ownable(msg.sender) {
         _TABLE_PREFIX = _table_prefix;
         _tableId = TablelandDeployments.get().create(
-            address(msg.sender),
+            address(this),
             SQLHelpers.toCreateFromSchema(
-                "id integer primary key,"
-                "name text,"
+                "id integer,"
                 "deprize integer,"
-                "treasury text,"
-                "metadata text",
+                "teamId integer,"
+                "metadata text,"
+                "unique(deprize, teamId),"
+                "PRIMARY KEY (id, deprize, teamId)",
                 _TABLE_PREFIX
             )
         );
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory name, uint256 deprize, string memory treasury, string memory metadata) external {
+    function insertIntoTable(uint256 deprize, uint256 teamId, string memory metadata) external {
+        uint256 currId = deprizeIdToCurrId[deprize];
         string memory setters = string.concat(
                 Strings.toString(currId),
                 ",",
-                SQLHelpers.quote(name),
-                ",",
                 Strings.toString(deprize),
                 ",",
-                SQLHelpers.quote(treasury),
+                Strings.toString(teamId),
                 ",",
                 SQLHelpers.quote(metadata)
         );
@@ -50,11 +53,12 @@ contract Competitor is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,name,deprize,treasury,metadata",
+                "id,deprize,teamId,metadata",
                 setters
             )
         );
-        currId += 1;
+        deprizeIdToCurrId[deprize] = currId + 1;
+        deprizeIdToIdToTeamId[deprize][currId] = teamId;
     }
 
 
