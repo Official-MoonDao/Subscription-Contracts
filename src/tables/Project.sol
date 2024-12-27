@@ -82,7 +82,7 @@ contract Project is TablelandController, Ownable {
 
     function updateTableCol(uint256 id, uint256 teamId, string memory col, string memory val) external {
         require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
-        require (idToTeamId[id] == teamId, "You can only update a marketplace listing by your team");
+        require (idToTeamId[id] == teamId, "You can only update a project for your team");
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
             _tableId,
