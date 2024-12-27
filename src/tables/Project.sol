@@ -44,7 +44,7 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 teamId) external onlyOwner{
+    function insertIntoTable(uint256 teamId, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external onlyOwner{
         string memory setters = string.concat(
                 Strings.toString(currId),
                 ",",
