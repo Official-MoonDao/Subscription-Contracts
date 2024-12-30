@@ -76,6 +76,16 @@ contract CreatorTest is Test {
         creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
     }
 
+    function testUpdateFinalReportIPFS() public {
+        address[] memory members = new address[](2);
+        members[0] = user3;
+        members[1] = user4;
+        vm.prank(user1);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+        vm.prank(user1);
+        table.updateFinalReportIPFS(table.currId() -1 ,tokenId, "IPFS_HASH");
+    }
+
 
 
 
