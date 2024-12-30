@@ -56,11 +56,11 @@ contract ProjectTeamCreator is Ownable {
         openAccess = _openAccess;
     }
 
-    function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address[] memory members) external payable returns (uint256 tokenId, uint256 childHatId) {
-        require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create a Project Team");
+    function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address lead, address[] memory members) external onlyOwner() payable returns (uint256 tokenId, uint256 childHatId) {
+        require(whitelist.isWhitelisted(lead) || openAccess, "Only whitelisted addresses can create a Project Team");
 
 
-        bytes memory safeCallData = constructSafeCallData(msg.sender);
+        bytes memory safeCallData = constructSafeCallData(lead);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
 
         //admin hat
@@ -70,7 +70,7 @@ contract ProjectTeamCreator is Ownable {
         //manager hat
         uint256 teamManagerHat = hats.createHat(teamAdminHat, managerHatURI, 8, address(gnosisSafe), address(gnosisSafe), true, "");
 
-        hats.mintHat(teamManagerHat, msg.sender);
+        hats.mintHat(teamManagerHat, lead);
         // loop through members and mint hats, before the safe has control
         hats.transferHat(teamAdminHat, address(this), address(gnosisSafe));
 
@@ -90,14 +90,14 @@ contract ProjectTeamCreator is Ownable {
         //payment splitter
         address[] memory payees = new address[](2);
         payees[0] = address(gnosisSafe);
-        payees[1] = msg.sender;
+        payees[1] = lead;
         uint256[] memory shares = new uint256[](2);
         shares[0] = 9900;
         shares[1] = 100;
         PaymentSplitter split = new PaymentSplitter(payees, shares);
 
         //mint
-        tokenId = projectTeam.mintTo{value: msg.value}(address(gnosisSafe), msg.sender, teamAdminHat, teamManagerHat, teamMemberHat, address(memberPassthroughModule), address(split));
+        tokenId = projectTeam.mintTo{value: msg.value}(address(gnosisSafe), lead, teamAdminHat, teamManagerHat, teamMemberHat, address(memberPassthroughModule), address(split));
 
         table.insertIntoTable(tokenId, title, quarter, year, MDP, proposalIPFS, "", "", "", "", 1, 0);
     }

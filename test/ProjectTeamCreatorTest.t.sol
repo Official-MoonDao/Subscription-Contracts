@@ -73,16 +73,16 @@ contract CreatorTest is Test {
         address[] memory members = new address[](2);
         members[0] = user2;
         members[1] = user3;
-        vm.prank(user1);
-        creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+        vm.prank(user4);
+        creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
     }
 
     function testUpdateFinalReportIPFS() public {
         address[] memory members = new address[](2);
         members[0] = user2;
         members[1] = user3;
-        vm.prank(user1);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+        vm.prank(user4);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         uint256 id = table.currId() -1;
         vm.prank(user1);
@@ -93,8 +93,8 @@ contract CreatorTest is Test {
         address[] memory members = new address[](2);
         members[0] = user2;
         members[1] = user3;
-        vm.prank(user1);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+        vm.prank(user4);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         uint256 id = table.currId() - 1;
         vm.prank(user2);
@@ -107,8 +107,8 @@ contract CreatorTest is Test {
         address[] memory members = new address[](2);
         members[0] = user2;
         members[1] = user3;
-        vm.prank(user1);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+        vm.prank(user4);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         uint256 id = table.currId() - 1;
         vm.prank(user4);
@@ -119,8 +119,8 @@ contract CreatorTest is Test {
         address[] memory members = new address[](2);
         members[0] = user2;
         members[1] = user3;
-        vm.prank(user1);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+        vm.prank(user4);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         uint256 id = table.currId() - 1;
         vm.prank(user1);
