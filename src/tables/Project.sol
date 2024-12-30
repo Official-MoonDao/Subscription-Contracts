@@ -6,7 +6,7 @@ import {TablelandDeployments} from "@evm-tableland/contracts/utils/TablelandDepl
 import {TablelandController} from "@evm-tableland/contracts/TablelandController.sol";
 import {SQLHelpers} from "@evm-tableland/contracts/utils/SQLHelpers.sol";
 import {TablelandPolicy} from "@evm-tableland/contracts/TablelandPolicy.sol";
-import {MoonDAOTeam} from "../ERC5643.sol";
+import {ProjectTeam} from "../ProjectTeam.sol";
 
 
 contract Project is TablelandController, Ownable {
@@ -15,9 +15,9 @@ contract Project is TablelandController, Ownable {
     // and values as the percentage of rewards
     uint256 private _tableId;
     string private _TABLE_PREFIX;
-    MoonDAOTeam public _moonDaoTeam;
+    ProjectTeam public _projectTeam;
     uint256 public currId = 0;
-    mapping(uint256 => uint256) public idToTeamId;
+    mapping(uint256 => uint256) public idToProjectTeamId;
 
     constructor(string memory _table_prefix) Ownable(msg.sender) {
         _TABLE_PREFIX = _table_prefix;
@@ -33,18 +33,20 @@ contract Project is TablelandController, Ownable {
                 "proposalLink text,"
                 "finalReportIPFS text,"
                 "finalReportLink text,"
-                "contributors text",
+                "contributors text,"
+                "active integer,"
+                "eligible integer",
                 _TABLE_PREFIX
             )
         );
     }
 
-    function setMoonDaoTeam(address moonDaoTeam) external onlyOwner{
-        _moonDaoTeam = MoonDAOTeam(moonDaoTeam);
+    function setProjectTeam(address projectTeam) external onlyOwner{
+        _projectTeam = ProjectTeam(projectTeam);
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(uint256 teamId, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors) external onlyOwner{
+    function insertIntoTable(uint256 projectTeamId, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 active, uint256 eligible) external onlyOwner{
         string memory setters = string.concat(
                 Strings.toString(currId),
                 ",",
@@ -64,7 +66,11 @@ contract Project is TablelandController, Ownable {
                 ",",
                 SQLHelpers.quote(finalReportLink),
                 ",",
-                SQLHelpers.quote(contributors)
+                SQLHelpers.quote(contributors),
+                ",",
+                Strings.toString(active),
+                ",",
+                Strings.toString(eligible)
         );
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
@@ -72,17 +78,15 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,contributors",
+                "id,title,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,contributors,active,eligible",
                 setters
             )
         );
-        idToTeamId[currId] = teamId;
+        idToProjectTeamId[currId] = projectTeamId;
         currId += 1;
     }
 
-    function updateTableCol(uint256 id, uint256 teamId, string memory col, string memory val) external {
-        require (_moonDaoTeam.isManager(teamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
-        require (idToTeamId[id] == teamId, "You can only update a project for your team");
+    function updateTableCol(uint256 id, uint256 projectTeamId, string memory col, string memory val) internal {
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
             _tableId,
@@ -101,6 +105,35 @@ contract Project is TablelandController, Ownable {
             )
         );
     }
+
+    function updateFinalReportIPFS(uint256 id, uint256 projectTeamId, string memory finalReportIPFS) external {
+        require (_projectTeam.isManager(projectTeamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        require (idToProjectTeamId[id] == projectTeamId, "You can only update a project for your team");
+        updateTableCol(id, projectTeamId, "finalReportIPFS", finalReportIPFS);
+    }
+
+    function updateQuarterAndYear(uint256 id, uint256 projectTeamId, uint256 quarter, uint256 year) external {
+        require (_projectTeam.isManager(projectTeamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        require (idToProjectTeamId[id] == projectTeamId, "You can only update a project for your team");
+        updateTableCol(id, projectTeamId, "quarter", Strings.toString(quarter));
+        updateTableCol(id, projectTeamId, "year", Strings.toString(year));
+    }
+
+    function updateContributors(uint256 id, uint256 projectTeamId, string memory contributors) external {
+        require (_projectTeam.isManager(projectTeamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
+        require (idToProjectTeamId[id] == projectTeamId, "You can only update a project for your team");
+        updateTableCol(id, projectTeamId, "contributors", contributors);
+    }
+
+    function updateActive(uint256 id, uint256 projectTeamId, uint256 active) external onlyOwner{
+        updateTableCol(id, projectTeamId, "active", Strings.toString(active));
+    }
+
+    function updateEligible(uint256 id, uint256 projectTeamId, uint256 eligible) external onlyOwner{
+        updateTableCol(id, projectTeamId, "eligible", Strings.toString(eligible));
+    }
+
+
     // Set the ACL controller to enable row-level writes with dynamic policies
     function setAccessControl(address controller) external onlyOwner{
         TablelandDeployments.get().setController(
