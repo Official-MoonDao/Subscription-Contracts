@@ -58,11 +58,11 @@ contract ProjectTeamCreator is Ownable {
 
     function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address[] memory members) external payable returns (uint256 tokenId, uint256 childHatId) {
         require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create a Project Team");
-        
+
 
         bytes memory safeCallData = constructSafeCallData(msg.sender);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
-        
+
         //admin hat
         uint256 teamAdminHat = hats.createHat(projectTeamAdminHatId, adminHatURI, 1, address(gnosisSafe), address(gnosisSafe), true, "");
         hats.mintHat(teamAdminHat, address(this));
@@ -72,9 +72,9 @@ contract ProjectTeamCreator is Ownable {
 
         hats.mintHat(teamManagerHat, msg.sender);
         // loop through members and mint hats, before the safe has control
-        for (uint i = 0; i < members.length; i++) {
-            hats.mintHat(teamManagerHat, members[i]);
-        }
+        //for (uint i = 0; i < members.length; i++) {
+            //hats.mintHat(teamManagerHat, members[i]);
+        //}
         hats.transferHat(teamAdminHat, address(this), address(gnosisSafe));
 
         //member hat

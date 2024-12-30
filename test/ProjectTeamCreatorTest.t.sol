@@ -65,28 +65,66 @@ contract CreatorTest is Test {
         team.setProjectTeamCreator(address(creator));
 
         hats.mintHat(projectTeamAdminHatId, address(creator));
+        hats.changeHatEligibility(projectTeamAdminHatId, address(creator));
         vm.stopPrank();
     }
 
     function testMint() public {
         address[] memory members = new address[](2);
-        members[0] = user3;
-        members[1] = user4;
+        members[0] = user2;
+        members[1] = user3;
         vm.prank(user1);
         creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
     }
 
     function testUpdateFinalReportIPFS() public {
         address[] memory members = new address[](2);
-        members[0] = user3;
-        members[1] = user4;
+        members[0] = user2;
+        members[1] = user3;
         vm.prank(user1);
         (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+
+        uint256 id = table.currId() -1;
         vm.prank(user1);
-        table.updateFinalReportIPFS(table.currId() -1 ,tokenId, "IPFS_HASH");
+        table.updateFinalReportIPFS(id ,tokenId, "IPFS_HASH");
+    }
+
+    function testUpdateFinalReportIPFSBadUser() public {
+        address[] memory members = new address[](2);
+        members[0] = user2;
+        members[1] = user3;
+        vm.prank(user1);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+
+        uint256 id = table.currId() - 1;
+        vm.prank(user2);
+        vm.expectRevert();
+        table.updateFinalReportIPFS(id,tokenId, "IPFS_HASH");
     }
 
 
+    function testUpdateActive() public {
+        address[] memory members = new address[](2);
+        members[0] = user2;
+        members[1] = user3;
+        vm.prank(user1);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
 
+        uint256 id = table.currId() - 1;
+        vm.prank(user4);
+        table.updateActive(id ,tokenId, 0);
+    }
 
+    function testUpdateActiveBadUser() public {
+        address[] memory members = new address[](2);
+        members[0] = user2;
+        members[1] = user3;
+        vm.prank(user1);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", members);
+
+        uint256 id = table.currId() - 1;
+        vm.prank(user1);
+        vm.expectRevert();
+        table.updateActive(id ,tokenId, 0);
+    }
 }
