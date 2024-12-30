@@ -57,7 +57,6 @@ contract ProjectTeamCreator is Ownable {
     }
 
     function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address[] members) external payable returns (uint256 tokenId, uint256 childHatId) {
-biobio
         require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create a Project Team");
         
 
