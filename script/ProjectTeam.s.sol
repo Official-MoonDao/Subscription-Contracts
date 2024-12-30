@@ -7,7 +7,7 @@ import {Project} from "../src/tables/Project.sol";
 // import "../src/ERC5643.sol";
 import {ProjectTeamCreator} from "../src/ProjectTeamCreator.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
-import {ProjectTeam} from "../src/ERC5643.sol";
+import {ProjectTeam} from "../src/ProjectTeam.sol";
 import {Whitelist} from "../src/Whitelist.sol";
 
 

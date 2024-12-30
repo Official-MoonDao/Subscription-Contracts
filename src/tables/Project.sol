@@ -46,7 +46,9 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(uint256 projectTeamId, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 active, uint256 eligible) external onlyOwner{
+    function insertIntoTable(uint256 projectTeamId, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 active, uint256 eligible) external {
+        //only let projectTeam.projectTeamCreator insert
+        require(_projectTeam.projectTeamCreator() == msg.sender, "Only ProjectTeamCreator can insert");
         string memory setters = string.concat(
                 Strings.toString(currId),
                 ",",

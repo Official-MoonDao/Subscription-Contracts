@@ -69,7 +69,7 @@ contract CreatorTest is Test {
     }
 
     function testMint() public {
-        address[] members = address[](2);
+        address[] memory members = new address[](2);
         members[0] = user3;
         members[1] = user4;
         vm.prank(user1);
