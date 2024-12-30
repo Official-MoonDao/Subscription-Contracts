@@ -72,13 +72,13 @@ contract ProjectTeamCreator is Ownable {
 
         hats.mintHat(teamManagerHat, msg.sender);
         // loop through members and mint hats, before the safe has control
-        //for (uint i = 0; i < members.length; i++) {
-            //hats.mintHat(teamManagerHat, members[i]);
-        //}
         hats.transferHat(teamAdminHat, address(this), address(gnosisSafe));
 
         //member hat
         uint256 teamMemberHat = hats.createHat(teamManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
+        for (uint i = 0; i < members.length; i++) {
+            hats.mintHat(teamMemberHat, members[i]);
+        }
 
         //member hat passthrough module (allow admin hat to control member hat)
         PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, hatsPassthrough, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
