@@ -11,8 +11,6 @@ import {ProjectTeam} from "../ProjectTeam.sol";
 
 contract Project is TablelandController, Ownable {
     // Table for storing project information for retroactive rewards
-    // contributors is a json object with keys as contributor addresses
-    // and values as the percentage of rewards
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     ProjectTeam public _projectTeam;
@@ -31,7 +29,9 @@ contract Project is TablelandController, Ownable {
                 "proposalLink text,"
                 "finalReportIPFS text,"
                 "finalReportLink text,"
-                "contributors text,"
+                // rewardDistribution is a json object with contributor
+                // address as key and percentage of rewards as values
+                "rewardDistribution text,"
                 "active integer,"
                 "eligible integer",
                 _TABLE_PREFIX
@@ -44,7 +44,7 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(uint256 id, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 active, uint256 eligible) external {
+    function insertIntoTable(uint256 id, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory rewardDistribution, uint256 active, uint256 eligible) external {
         //only let projectTeam.projectTeamCreator insert
         require(_projectTeam.projectTeamCreator() == msg.sender, "Only ProjectTeamCreator can insert");
         string memory setters = string.concat(
@@ -66,7 +66,7 @@ contract Project is TablelandController, Ownable {
                 ",",
                 SQLHelpers.quote(finalReportLink),
                 ",",
-                SQLHelpers.quote(contributors),
+                SQLHelpers.quote(rewardDistribution),
                 ",",
                 Strings.toString(active),
                 ",",
@@ -78,7 +78,7 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,contributors,active,eligible",
+                "id,title,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,rewardDistribution,active,eligible",
                 setters
             )
         );
@@ -115,9 +115,9 @@ contract Project is TablelandController, Ownable {
         updateTableCol(id, "year", Strings.toString(year));
     }
 
-    function updateContributors(uint256 id, string memory contributors) external {
+    function updateRewardDistribution(uint256 id, string memory rewardDistribution) external {
         require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
-        updateTableCol(id, "contributors", contributors);
+        updateTableCol(id, "rewardDistribution", rewardDistribution);
     }
 
     function updateActive(uint256 id, uint256 active) external onlyOwner{
