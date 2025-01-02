@@ -12,7 +12,6 @@ import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
 import {deployModuleFactory} from "@hats-module/utils/DeployFunctions.sol";
 import {ProjectTeamCreator} from "../src/ProjectTeamCreator.sol";
 import {Project} from "../src/tables/Project.sol";
-import {Whitelist} from "../src/Whitelist.sol";
 import {Hats} from "@hats/Hats.sol";
 
 contract CreatorTest is Test {
@@ -46,15 +45,10 @@ contract CreatorTest is Test {
         address gnosisSafeAddress = address(0x0165878A594ca255338adfa4d48449f69242Eb8F);
         GnosisSafeProxyFactory proxyFactory = new GnosisSafeProxyFactory();
 
-
-        Whitelist whitelist = new Whitelist();
-
         table = new Project("PROJECT");
 
         team = new ProjectTeam("PROJECT", "MDPT", user4, address(hats));
-        creator = new ProjectTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(team), gnosisSafeAddress, address(proxyFactory), address(table), address(whitelist));
-
-        creator.setOpenAccess(true);
+        creator = new ProjectTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(team), gnosisSafeAddress, address(proxyFactory), address(table));
 
         table.setProjectTeam(address(team));
         uint256 topHatId = hats.mintTopHat(user4, "", "");

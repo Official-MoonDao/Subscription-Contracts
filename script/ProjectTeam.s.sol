@@ -8,7 +8,6 @@ import {Project} from "../src/tables/Project.sol";
 import {ProjectTeamCreator} from "../src/ProjectTeamCreator.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
 import {ProjectTeam} from "../src/ProjectTeam.sol";
-import {Whitelist} from "../src/Whitelist.sol";
 
 
 
@@ -19,7 +18,6 @@ contract MyScript is Script {
 
         address TREASURY = 0xAF26a002d716508b7e375f1f620338442F5470c0;
 
-        Whitelist whitelist = new Whitelist();
 
         address hatsAddress = 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137;
         address hatsModuleFactoryAddress = 0x0a3f85fa597B6a967271286aA0724811acDF5CD9;
@@ -41,9 +39,7 @@ contract MyScript is Script {
 
         projectTable.setProjectTeam(address(projectTeam));
 
-        ProjectTeamCreator creator = new ProjectTeamCreator(hatsAddress, hatsModuleFactoryAddress, hatsPassthroughAddress, address(projectTeam), gnosisSingletonAddress, gnosisSafeProxyFactoryAddress, address(projectTable), address(whitelist));
-
-        // creator.setOpenAccess(true);
+        ProjectTeamCreator creator = new ProjectTeamCreator(hatsAddress, hatsModuleFactoryAddress, hatsPassthroughAddress, address(projectTeam), gnosisSingletonAddress, gnosisSafeProxyFactoryAddress, address(projectTable));
 
         creator.setProjectTeamAdminHatId(projectTeamAdminHatId);
         projectTeam.setProjectTeamCreator(address(creator));

@@ -8,7 +8,6 @@ import "./GnosisSafeProxyFactory.sol";
 import "./GnosisSafeProxy.sol";
 import {Project} from "./tables/Project.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Whitelist} from "./Whitelist.sol";
 import {PaymentSplitter} from "./PaymentSplitter.sol";
 import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
 import {PassthroughModule} from "./PassthroughModule.sol";
@@ -32,11 +31,7 @@ contract ProjectTeamCreator is Ownable {
 
     uint256 public projectTeamAdminHatId;
 
-    Whitelist internal whitelist;
-
-    bool public openAccess;
-
-    constructor(address _hats, address _hatsModuleFactory, address _hatsPassthrough, address _projectTeam, address _gnosisSingleton, address _gnosisSafeProxyFactory, address _table, address _whitelist) Ownable(msg.sender) {
+    constructor(address _hats, address _hatsModuleFactory, address _hatsPassthrough, address _projectTeam, address _gnosisSingleton, address _gnosisSafeProxyFactory, address _table) Ownable(msg.sender) {
         hats = IHats(_hats);
         projectTeam = ProjectTeam(_projectTeam);
         gnosisSingleton = _gnosisSingleton;
@@ -45,15 +40,10 @@ contract ProjectTeamCreator is Ownable {
         hatsModuleFactory = HatsModuleFactory(_hatsModuleFactory);
 
         table = Project(_table);
-        whitelist = Whitelist(_whitelist);
     }
 
     function setProjectTeamAdminHatId(uint256 _projectTeamAdminHatId) external onlyOwner() {
         projectTeamAdminHatId = _projectTeamAdminHatId;
-    }
-
-    function setOpenAccess(bool _openAccess) external onlyOwner() {
-        openAccess = _openAccess;
     }
 
     function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address lead, address[] memory members) external onlyOwner() payable returns (uint256 tokenId, uint256 childHatId) {
