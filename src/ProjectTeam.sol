@@ -4,31 +4,19 @@ pragma solidity ^0.8.20;
 
 import "@thirdweb-dev/contracts/extension/Ownable.sol";
 import "@thirdweb-dev/contracts/eip/ERC721A.sol";
-import "./IERC5643Team.sol";
 import {ERC721URIStorage} from "./ERC721URIStorage.sol";
 import "@thirdweb-dev/contracts/lib/Address.sol";
 import "@hats/Interfaces/IHats.sol";
 import "@evm-tableland/contracts/utils/URITemplate.sol";
 import {Whitelist} from "./Whitelist.sol";
 
-error RenewalTooShort();
-error RenewalTooLong();
 error InsufficientPayment();
-error SubscriptionNotRenewable();
 error InvalidTokenId();
 error CallerNotOwnerNorApproved();
 
-contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
-
-    // For example: targeted subscription = 0.5 eth / 365 days.
-    // pricePerSecond = 5E17 wei / 31536000 (seconds in 365 days)
-
-    // Roughly calculates to 0.1 (1E17 wei) ether per 365 days.
-    uint256 public pricePerSecond = 0;
+contract ProjectTeam is ERC721URIStorage, URITemplate, Ownable {
 
     string private _baseURIString = "https://tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
-
-    mapping(uint256 => uint64) private _expirations;
 
     mapping(uint256 => uint256) public adminHatToTokenId;
 
@@ -40,12 +28,7 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
     mapping(uint256 => address) public memberPassthroughModule;
 
-
-    address payable public moonDAOTreasury;
     address public projectTeamCreator;
-
-    uint64 internal minimumRenewalDuration;
-    uint64 internal maximumRenewalDuration;
 
     IHats internal hats;
 
@@ -54,7 +37,6 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
         ERC721A(name_, symbol_) 
     {
         _setupOwner(_msgSender());
-        moonDAOTreasury = payable(_treasury);
         hats = IHats(_hats);
     }
 
@@ -93,17 +75,12 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
         return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, _tokenURI)) : "";
     }
 
-    function setTreasury(address _newTreasury) public onlyOwner {
-        moonDAOTreasury = payable(_newTreasury);
-    }
-
-    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _memberPassthroughModule) external payable returns (uint256) {
+    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _memberPassthroughModule) external returns (uint256) {
         require (msg.sender == projectTeamCreator, "Only the Project Team Creator can mint");
 
         uint256 tokenId = _currentIndex;
 
         _mint(to, 1);
-        renewSubscription(sender, tokenId, 365 days);
 
         teamAdminHat[tokenId] = adminHat;
         adminHatToTokenId[adminHat] = tokenId;
@@ -127,43 +104,6 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
         projectTeamCreator = _projectTeamCreator;
     }
 
-
-    /**
-     * @dev See {IERC5643Team-renewSubscription}.
-     */
-    function renewSubscription(address sender, uint256 tokenId, uint64 duration)
-        public
-        payable
-        virtual
-    {
-        // if (!_isApprovedOrOwner(msg.sender, tokenId)) {
-        //     revert CallerNotOwnerNorApproved();
-        // }
-
-        if (duration < minimumRenewalDuration) {
-            revert RenewalTooShort();
-        } else if (
-            maximumRenewalDuration != 0 && duration > maximumRenewalDuration
-        ) {
-            revert RenewalTooLong();
-        }
-
-        if (msg.value < getRenewalPrice(sender, duration)) {
-            revert InsufficientPayment();
-        }
-
-        moonDAOTreasury.call{value: msg.value}("");
-        
-        _extendSubscription(tokenId, duration);
-    }
-
-    function setMinimumRenewalDuration(uint64 duration) external onlyOwner {
-        _setMinimumRenewalDuration(duration);
-    }
-
-    function setMaximumRenewalDuration(uint64 duration) external onlyOwner {
-        _setMaximumRenewalDuration(duration);
-    }
 
     function isManager(uint256 tokenId, address sender) external view returns (bool) {
         if (!_exists(tokenId)) {
@@ -190,117 +130,6 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
     }
 
     /**
-     * @dev Extends the subscription for `tokenId` for `duration` seconds.
-     * If the `tokenId` does not exist, an error will be thrown.
-     * If a token is not renewable, an error will be thrown.
-     * Emits a {SubscriptionUpdate} event after the subscription is extended.
-     */
-    function _extendSubscription(uint256 tokenId, uint64 duration)
-        internal
-        virtual
-    {
-        if (!_exists(tokenId)) {
-            revert InvalidTokenId();
-        }
-
-        uint64 currentExpiration = _expirations[tokenId];
-        uint64 newExpiration;
-        if ((currentExpiration == 0) || (currentExpiration < block.timestamp)) {
-            newExpiration = uint64(block.timestamp) + duration;
-        } else {
-            if (!_isRenewable(tokenId)) {
-                revert SubscriptionNotRenewable();
-            }
-            newExpiration = currentExpiration + duration;
-        }
-
-        _expirations[tokenId] = newExpiration;
-
-        emit SubscriptionUpdate(tokenId, newExpiration);
-    }
-
-    /**
-     * @dev Gets the price to renew a subscription for `duration` seconds for
-     * a given tokenId. This value is defaulted to 0, but should be overridden in
-     * implementing contracts.
-     */
-    function getRenewalPrice(address owner, uint64 duration) public view virtual returns (uint256) {
-        uint256 price = duration * pricePerSecond;
-        return price;
-    }
-
-    /**
-     * @dev See {IERC5643Team-cancelSubscription}.
-     */
-    function cancelSubscription(uint256 tokenId) external payable virtual {
-        if (!(_isApprovedOrOwner(msg.sender, tokenId) || _msgSender() == owner())) {
-            revert CallerNotOwnerNorApproved();
-        }
-
-        delete _expirations[tokenId];
-
-        emit SubscriptionUpdate(tokenId, 0);
-    }
-
-    /**
-     * @dev See {IERC5643Team-expiresAt}.
-     */
-    function expiresAt(uint256 tokenId)
-        external
-        view
-        virtual
-        returns (uint64)
-    {
-        if (!_exists(tokenId)) {
-            revert InvalidTokenId();
-        }
-        return _expirations[tokenId];
-    }
-
-    /**
-     * @dev See {IERC5643Team-isRenewable}.
-     */
-    function isRenewable(uint256 tokenId)
-        external
-        view
-        virtual
-        returns (bool)
-    {
-        if (!_exists(tokenId)) {
-            revert InvalidTokenId();
-        }
-        return _isRenewable(tokenId);
-    }
-
-    /**
-     * @dev Internal function to determine renewability. Implementing contracts
-     * should override this function if renewabilty should be disabled for all or
-     * some tokens.
-     */
-    function _isRenewable(uint256 tokenId)
-        internal
-        view
-        virtual
-        returns (bool)
-    {
-        return true;
-    }
-
-    /**
-     * @dev Internal function to set the minimum renewal duration.
-     */
-    function _setMinimumRenewalDuration(uint64 duration) internal virtual {
-        minimumRenewalDuration = duration;
-    }
-
-    /**
-     * @dev Internal function to set the maximum renewal duration.
-     */
-    function _setMaximumRenewalDuration(uint64 duration) internal virtual {
-        maximumRenewalDuration = duration;
-    }
-
-    /**
      * @dev Returns whether `spender` is allowed to manage `tokenId`.
      *
      * Requirements:
@@ -315,20 +144,5 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
     // Disable token transfers
     function _beforeTokenTransfers(address from, address to, uint256 startTokenId, uint256 quantity) internal virtual override {
         require (from == address(0) || to == address(0), "You may not transfer your token!");
-    }
-
-
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
-        return interfaceId == type(IERC5643Team).interfaceId
-            || super.supportsInterface(interfaceId);
     }
 }

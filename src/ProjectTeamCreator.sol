@@ -86,7 +86,7 @@ contract ProjectTeamCreator is Ownable {
 
 
         //mint
-        tokenId = projectTeam.mintTo{value: msg.value}(address(gnosisSafe), lead, projectAdminHat, projectManagerHat, projectContributorHat, address(memberPassthroughModule));
+        tokenId = projectTeam.mintTo(address(gnosisSafe), lead, projectAdminHat, projectManagerHat, projectContributorHat, address(memberPassthroughModule));
 
         table.insertIntoTable(tokenId, title, quarter, year, MDP, proposalIPFS, "", "", "", "", 1, 0);
     }

@@ -73,7 +73,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
+        creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
     }
 
     function testUpdateFinalReportIPFS() public {
@@ -81,7 +81,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         vm.prank(user1);
         table.updateFinalReportIPFS(tokenId, "IPFS_HASH");
@@ -92,7 +92,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         vm.prank(user2);
         vm.expectRevert();
@@ -105,7 +105,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         vm.prank(user4);
         table.updateActive(tokenId, 0);
@@ -116,7 +116,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         vm.prank(user1);
         vm.expectRevert();
