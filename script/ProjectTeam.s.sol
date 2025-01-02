@@ -26,9 +26,7 @@ contract MyScript is Script {
 
         IHats hats = IHats(hatsAddress);
 
-        uint256 topHatId = 11350137546870419353554813351635264513601237801889581014544619914919936;
-
-        // uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
+        uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
 
         uint256 projectTeamAdminHatId = hats.createHat(topHatId, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
 
