@@ -18,7 +18,6 @@ contract MyScript is Script {
 
         address TREASURY = 0xAF26a002d716508b7e375f1f620338442F5470c0;
 
-
         address hatsAddress = 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137;
         address hatsModuleFactoryAddress = 0x0a3f85fa597B6a967271286aA0724811acDF5CD9;
         address hatsPassthroughAddress = 0x97b5621E4CD8F403ab5b6036181982752DE3aC44;

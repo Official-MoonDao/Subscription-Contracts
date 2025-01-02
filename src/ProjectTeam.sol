@@ -8,7 +8,6 @@ import {ERC721URIStorage} from "./ERC721URIStorage.sol";
 import "@thirdweb-dev/contracts/lib/Address.sol";
 import "@hats/Interfaces/IHats.sol";
 import "@evm-tableland/contracts/utils/URITemplate.sol";
-import {Whitelist} from "./Whitelist.sol";
 
 error InsufficientPayment();
 error InvalidTokenId();
