@@ -108,7 +108,7 @@ contract CreatorTest is Test {
         (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
         vm.prank(user4);
-        table.updateActive(tokenId, 0);
+        table.updateTableCol(tokenId, "active", '0');
     }
 
     function testUpdateActiveBadUser() public {
@@ -120,6 +120,6 @@ contract CreatorTest is Test {
 
         vm.prank(user1);
         vm.expectRevert();
-        table.updateActive(tokenId, 0);
+        table.updateTableCol(tokenId, "active", '0');
     }
 }

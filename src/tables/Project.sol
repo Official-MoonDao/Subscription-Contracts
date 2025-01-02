@@ -84,7 +84,7 @@ contract Project is TablelandController, Ownable {
         );
     }
 
-    function updateTableCol(uint256 id, string memory col, string memory val) internal {
+    function updateTableColManager(uint256 id, string memory col, string memory val) internal {
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
             _tableId,
@@ -106,28 +106,44 @@ contract Project is TablelandController, Ownable {
 
     function updateFinalReportIPFS(uint256 id, string memory finalReportIPFS) external {
         require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
-        updateTableCol(id, "finalReportIPFS", finalReportIPFS);
+        updateTableColManager(id, "finalReportIPFS", finalReportIPFS);
     }
 
-    function updateQuarterAndYear(uint256 id, uint256 quarter, uint256 year) external {
+    function updateFinalReportLink(uint256 id, string memory finalReportLink) external {
         require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
-        updateTableCol(id, "quarter", Strings.toString(quarter));
-        updateTableCol(id, "year", Strings.toString(year));
+        updateTableColManager(id, "finalReportLink", finalReportLink);
     }
 
     function updateRewardDistribution(uint256 id, string memory rewardDistribution) external {
         require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
-        updateTableCol(id, "rewardDistribution", rewardDistribution);
+        updateTableColManager(id, "rewardDistribution", rewardDistribution);
     }
 
-    function updateActive(uint256 id, uint256 active) external onlyOwner{
-        updateTableCol(id, "active", Strings.toString(active));
+    function updateQuarterAndYear(uint256 id, uint256 quarter, uint256 year) external {
+        require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
+        updateTableColManager(id, "quarter", Strings.toString(quarter));
+        updateTableColManager(id, "year", Strings.toString(year));
     }
 
-    function updateEligible(uint256 id, uint256 eligible) external onlyOwner{
-        updateTableCol(id, "eligible", Strings.toString(eligible));
+    function updateTableCol(uint256 id, string memory col, string memory val) external onlyOwner {
+        TablelandDeployments.get().mutate(
+            address(this), // Table owner, i.e., this contract
+            _tableId,
+            SQLHelpers.toUpdate(
+                _TABLE_PREFIX,
+                _tableId,
+                string.concat(
+                    col,
+                    "=",
+                    SQLHelpers.quote(val)
+                ),
+                string.concat(
+                    "id = ",
+                    Strings.toString(id)
+                )
+            )
+        );
     }
-
 
     // Set the ACL controller to enable row-level writes with dynamic policies
     function setAccessControl(address controller) external onlyOwner{
