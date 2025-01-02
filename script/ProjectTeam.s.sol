@@ -21,9 +21,13 @@ contract MyScript is Script {
 
         Whitelist whitelist = new Whitelist();
 
-        Whitelist discountList = new Whitelist();
+        address hatsAddress = 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137;
+        address hatsModuleFactoryAddress = 0x0a3f85fa597B6a967271286aA0724811acDF5CD9;
+        address hatsPassthroughAddress = 0x97b5621E4CD8F403ab5b6036181982752DE3aC44;
+        address gnosisSingletonAddress = 0x3E5c63644E683549055b9Be8653de26E0B4CD36E;
+        address gnosisSafeProxyFactoryAddress = 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2;
 
-        IHats hats = IHats(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137);
+        IHats hats = IHats(hatsAddress);
 
         uint256 topHatId = 11350137546870419353554813351635264513601237801889581014544619914919936;
 
@@ -31,15 +35,13 @@ contract MyScript is Script {
 
         uint256 projectTeamAdminHatId = hats.createHat(topHatId, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
 
-        ProjectTeam projectTeam = new ProjectTeam("ProjectTeam", "MDPT", TREASURY, 0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, address(discountList));
-
-        // projectTeam.setDiscount(1000); //testing
+        ProjectTeam projectTeam = new ProjectTeam("ProjectTeam", "MDPT", TREASURY, hatsAddress);
 
         Project projectTable  = new Project("PROJECT");
 
         projectTable.setProjectTeam(address(projectTeam));
 
-        ProjectTeamCreator creator = new ProjectTeamCreator(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, 0x0a3f85fa597B6a967271286aA0724811acDF5CD9, 0x97b5621E4CD8F403ab5b6036181982752DE3aC44, address(projectTeam), 0x3E5c63644E683549055b9Be8653de26E0B4CD36E, 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2, address(projectTable), address(whitelist));
+        ProjectTeamCreator creator = new ProjectTeamCreator(hatsAddress, hatsModuleFactoryAddress, hatsPassthroughAddress, address(projectTeam), gnosisSingletonAddress, gnosisSafeProxyFactoryAddress, address(projectTable), address(whitelist));
 
         // creator.setOpenAccess(true);
 

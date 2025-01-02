@@ -48,11 +48,10 @@ contract CreatorTest is Test {
 
 
         Whitelist whitelist = new Whitelist();
-        Whitelist discountList = new Whitelist();
 
         table = new Project("PROJECT");
 
-        team = new ProjectTeam("PROJECT", "MDPT", user4, address(hats), address(discountList));
+        team = new ProjectTeam("PROJECT", "MDPT", user4, address(hats));
         creator = new ProjectTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(team), gnosisSafeAddress, address(proxyFactory), address(table), address(whitelist));
 
         creator.setOpenAccess(true);
@@ -84,9 +83,8 @@ contract CreatorTest is Test {
         vm.prank(user4);
         (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
-        uint256 id = table.currId() -1;
         vm.prank(user1);
-        table.updateFinalReportIPFS(id ,tokenId, "IPFS_HASH");
+        table.updateFinalReportIPFS(tokenId, "IPFS_HASH");
     }
 
     function testUpdateFinalReportIPFSBadUser() public {
@@ -96,10 +94,9 @@ contract CreatorTest is Test {
         vm.prank(user4);
         (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
-        uint256 id = table.currId() - 1;
         vm.prank(user2);
         vm.expectRevert();
-        table.updateFinalReportIPFS(id,tokenId, "IPFS_HASH");
+        table.updateFinalReportIPFS(tokenId, "IPFS_HASH");
     }
 
 
@@ -110,9 +107,8 @@ contract CreatorTest is Test {
         vm.prank(user4);
         (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
-        uint256 id = table.currId() - 1;
         vm.prank(user4);
-        table.updateActive(id ,tokenId, 0);
+        table.updateActive(tokenId, 0);
     }
 
     function testUpdateActiveBadUser() public {
@@ -122,9 +118,8 @@ contract CreatorTest is Test {
         vm.prank(user4);
         (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam{value: 0 ether}(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
 
-        uint256 id = table.currId() - 1;
         vm.prank(user1);
         vm.expectRevert();
-        table.updateActive(id ,tokenId, 0);
+        table.updateActive(tokenId, 0);
     }
 }

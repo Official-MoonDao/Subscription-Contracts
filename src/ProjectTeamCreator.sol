@@ -57,47 +57,36 @@ contract ProjectTeamCreator is Ownable {
     }
 
     function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address lead, address[] memory members) external onlyOwner() payable returns (uint256 tokenId, uint256 childHatId) {
-        require(whitelist.isWhitelisted(lead) || openAccess, "Only whitelisted addresses can create a Project Team");
-
-
         bytes memory safeCallData = constructSafeCallData(lead);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
 
         //admin hat
-        uint256 teamAdminHat = hats.createHat(projectTeamAdminHatId, adminHatURI, 1, address(gnosisSafe), address(gnosisSafe), true, "");
-        hats.mintHat(teamAdminHat, address(this));
+        uint256 projectAdminHat = hats.createHat(projectTeamAdminHatId, adminHatURI, 1, address(gnosisSafe), address(gnosisSafe), true, "");
+        hats.mintHat(projectAdminHat, address(this));
 
         //manager hat
-        uint256 teamManagerHat = hats.createHat(teamAdminHat, managerHatURI, 8, address(gnosisSafe), address(gnosisSafe), true, "");
+        uint256 projectManagerHat = hats.createHat(projectAdminHat, managerHatURI, 8, address(gnosisSafe), address(gnosisSafe), true, "");
 
-        hats.mintHat(teamManagerHat, lead);
+        hats.mintHat(projectManagerHat, lead);
         // loop through members and mint hats, before the safe has control
-        hats.transferHat(teamAdminHat, address(this), address(gnosisSafe));
+        hats.transferHat(projectAdminHat, address(this), address(gnosisSafe));
 
         //member hat
-        uint256 teamMemberHat = hats.createHat(teamManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
+        uint256 projectContributorHat = hats.createHat(projectManagerHat, memberHatURI, 1000, address(gnosisSafe), address(gnosisSafe), true, '');
         for (uint i = 0; i < members.length; i++) {
-            hats.mintHat(teamMemberHat, members[i]);
+            hats.mintHat(projectContributorHat, members[i]);
         }
 
         //member hat passthrough module (allow admin hat to control member hat)
-        PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, hatsPassthrough, teamMemberHat, abi.encodePacked(teamManagerHat), "", 0));
+        PassthroughModule memberPassthroughModule = PassthroughModule(deployModuleInstance(hatsModuleFactory, hatsPassthrough, projectContributorHat, abi.encodePacked(projectManagerHat), "", 0));
 
 
-        hats.changeHatEligibility(teamMemberHat, address(memberPassthroughModule));
-        hats.changeHatToggle(teamMemberHat, address(memberPassthroughModule));
+        hats.changeHatEligibility(projectContributorHat, address(memberPassthroughModule));
+        hats.changeHatToggle(projectContributorHat, address(memberPassthroughModule));
 
-        //payment splitter
-        address[] memory payees = new address[](2);
-        payees[0] = address(gnosisSafe);
-        payees[1] = lead;
-        uint256[] memory shares = new uint256[](2);
-        shares[0] = 9900;
-        shares[1] = 100;
-        PaymentSplitter split = new PaymentSplitter(payees, shares);
 
         //mint
-        tokenId = projectTeam.mintTo{value: msg.value}(address(gnosisSafe), lead, teamAdminHat, teamManagerHat, teamMemberHat, address(memberPassthroughModule), address(split));
+        tokenId = projectTeam.mintTo{value: msg.value}(address(gnosisSafe), lead, projectAdminHat, projectManagerHat, projectContributorHat, address(memberPassthroughModule));
 
         table.insertIntoTable(tokenId, title, quarter, year, MDP, proposalIPFS, "", "", "", "", 1, 0);
     }

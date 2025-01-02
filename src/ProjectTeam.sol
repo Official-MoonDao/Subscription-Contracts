@@ -26,9 +26,6 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
     // Roughly calculates to 0.1 (1E17 wei) ether per 365 days.
     uint256 public pricePerSecond = 0;
 
-    // Discount for renewal more than 12 dmonths. Denominator is 1000.
-    uint256 public discount = 933;
-
     string private _baseURIString = "https://tableland.network/api/v1/query?unwrap=true&extract=true&statement=";
 
     mapping(uint256 => uint64) private _expirations;
@@ -43,7 +40,6 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
     mapping(uint256 => address) public memberPassthroughModule;
 
-    mapping(uint256 => address) public splitContract;
 
     address payable public moonDAOTreasury;
     address public projectTeamCreator;
@@ -53,20 +49,15 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
     IHats internal hats;
 
-    Whitelist private discountList;
     
-    constructor(string memory name_, string memory symbol_, address _treasury, address _hats, address _discountList)
+    constructor(string memory name_, string memory symbol_, address _treasury, address _hats)
         ERC721A(name_, symbol_) 
     {
         _setupOwner(_msgSender());
         moonDAOTreasury = payable(_treasury);
         hats = IHats(_hats);
-        discountList = Whitelist(_discountList);
     }
 
-    function setDiscountList(address _discountList) public onlyOwner {
-        discountList = Whitelist(_discountList);
-    }
 
     function _baseURI() internal view override returns (string memory) {
         return _baseURIString;
@@ -106,7 +97,7 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
         moonDAOTreasury = payable(_newTreasury);
     }
 
-    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _memberPassthroughModule, address _splitContract) external payable returns (uint256) {
+    function mintTo(address to, address sender, uint256 adminHat, uint256 managerHat, uint256 memberHat, address _memberPassthroughModule) external payable returns (uint256) {
         require (msg.sender == projectTeamCreator, "Only the Project Team Creator can mint");
 
         uint256 tokenId = _currentIndex;
@@ -121,29 +112,11 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
 
         memberPassthroughModule[tokenId] = _memberPassthroughModule;
 
-        splitContract[tokenId] = _splitContract;
 
         return tokenId;
     }
 
 
-    /**
-     * Allow owner to change the subscription price
-     * @param _pricePerSecond new pricePerSecond
-     */
-    function setPricePerSecond(uint256 _pricePerSecond) external onlyOwner {
-        pricePerSecond = _pricePerSecond;
-    }
-
-
-    /**
-     * Allow owner to change the discount
-     * @param _discount new discount
-     */
-
-    function setDiscount(uint256 _discount) external onlyOwner {
-        discount = _discount;
-    }
 
     /**
      * Allow owner to change the projectTeamCreator
@@ -253,7 +226,7 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, IERC5643Team, Ownable {
      */
     function getRenewalPrice(address owner, uint64 duration) public view virtual returns (uint256) {
         uint256 price = duration * pricePerSecond;
-        return discountList.isWhitelisted(owner) ? price * (1000 - discount) / 1000 : price;
+        return price;
     }
 
     /**

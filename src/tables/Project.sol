@@ -16,8 +16,6 @@ contract Project is TablelandController, Ownable {
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     ProjectTeam public _projectTeam;
-    uint256 public currId = 0;
-    mapping(uint256 => uint256) public idToProjectTeamId;
 
     constructor(string memory _table_prefix) Ownable(msg.sender) {
         _TABLE_PREFIX = _table_prefix;
@@ -46,11 +44,11 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(uint256 projectTeamId, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 active, uint256 eligible) external {
+    function insertIntoTable(uint256 id, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory contributors, uint256 active, uint256 eligible) external {
         //only let projectTeam.projectTeamCreator insert
         require(_projectTeam.projectTeamCreator() == msg.sender, "Only ProjectTeamCreator can insert");
         string memory setters = string.concat(
-                Strings.toString(currId),
+                Strings.toString(id),
                 ",",
                 SQLHelpers.quote(title),
                 ",",
@@ -84,11 +82,9 @@ contract Project is TablelandController, Ownable {
                 setters
             )
         );
-        idToProjectTeamId[currId] = projectTeamId;
-        currId += 1;
     }
 
-    function updateTableCol(uint256 id, uint256 projectTeamId, string memory col, string memory val) internal {
+    function updateTableCol(uint256 id, string memory col, string memory val) internal {
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
             _tableId,
@@ -108,31 +104,28 @@ contract Project is TablelandController, Ownable {
         );
     }
 
-    function updateFinalReportIPFS(uint256 id, uint256 projectTeamId, string memory finalReportIPFS) external {
-        require (_projectTeam.isManager(projectTeamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
-        require (idToProjectTeamId[id] == projectTeamId, "You can only update a project for your team");
-        updateTableCol(id, projectTeamId, "finalReportIPFS", finalReportIPFS);
+    function updateFinalReportIPFS(uint256 id, string memory finalReportIPFS) external {
+        require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
+        updateTableCol(id, "finalReportIPFS", finalReportIPFS);
     }
 
-    function updateQuarterAndYear(uint256 id, uint256 projectTeamId, uint256 quarter, uint256 year) external {
-        require (_projectTeam.isManager(projectTeamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
-        require (idToProjectTeamId[id] == projectTeamId, "You can only update a project for your team");
-        updateTableCol(id, projectTeamId, "quarter", Strings.toString(quarter));
-        updateTableCol(id, projectTeamId, "year", Strings.toString(year));
+    function updateQuarterAndYear(uint256 id, uint256 quarter, uint256 year) external {
+        require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
+        updateTableCol(id, "quarter", Strings.toString(quarter));
+        updateTableCol(id, "year", Strings.toString(year));
     }
 
-    function updateContributors(uint256 id, uint256 projectTeamId, string memory contributors) external {
-        require (_projectTeam.isManager(projectTeamId, msg.sender) || owner() == msg.sender, "Only Admin can update");
-        require (idToProjectTeamId[id] == projectTeamId, "You can only update a project for your team");
-        updateTableCol(id, projectTeamId, "contributors", contributors);
+    function updateContributors(uint256 id, string memory contributors) external {
+        require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
+        updateTableCol(id, "contributors", contributors);
     }
 
-    function updateActive(uint256 id, uint256 projectTeamId, uint256 active) external onlyOwner{
-        updateTableCol(id, projectTeamId, "active", Strings.toString(active));
+    function updateActive(uint256 id, uint256 active) external onlyOwner{
+        updateTableCol(id, "active", Strings.toString(active));
     }
 
-    function updateEligible(uint256 id, uint256 projectTeamId, uint256 eligible) external onlyOwner{
-        updateTableCol(id, projectTeamId, "eligible", Strings.toString(eligible));
+    function updateEligible(uint256 id, uint256 eligible) external onlyOwner{
+        updateTableCol(id, "eligible", Strings.toString(eligible));
     }
 
 
