@@ -46,7 +46,7 @@ contract ProjectTeamCreator is Ownable {
         projectTeamAdminHatId = _projectTeamAdminHatId;
     }
 
-    function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address lead, address[] memory members) external onlyOwner() payable returns (uint256 tokenId, uint256 childHatId) {
+    function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address lead, address[] memory members) external onlyOwner() returns (uint256 tokenId, uint256 childHatId) {
         bytes memory safeCallData = constructSafeCallData(lead, members);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
 
@@ -82,12 +82,14 @@ contract ProjectTeamCreator is Ownable {
     }
 
     function constructSafeCallData(address caller, address[] memory members) internal returns (bytes memory) {
-        address[] memory owners = new address[](1 + members.length);
+        uint256 maxOwners = 5;
+        uint256 ownersLength = members.length + 1 > maxOwners ? maxOwners : members.length + 1;
+        address[] memory owners = new address[](ownersLength);
         owners[0] = msg.sender;
-        for (uint i = 0; i < members.length; i++) {
-            owners[i + 1] = members[i];
+        for (uint i = 1; i < ownersLength; i++) {
+            owners[i] = members[i - 1];
         }
-        uint256 threshold = members.length / 2 + 1;
+        uint256 threshold = owners.length / 2 + 1;
         //see https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L84
         bytes memory proxyInitData = abi.encodeWithSelector(
             // function selector (setup)
