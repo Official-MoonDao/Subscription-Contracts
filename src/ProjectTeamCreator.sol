@@ -47,7 +47,7 @@ contract ProjectTeamCreator is Ownable {
     }
 
     function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata title, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, address lead, address[] memory members) external onlyOwner() payable returns (uint256 tokenId, uint256 childHatId) {
-        bytes memory safeCallData = constructSafeCallData(lead);
+        bytes memory safeCallData = constructSafeCallData(lead, members);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
 
         //admin hat
@@ -81,13 +81,32 @@ contract ProjectTeamCreator is Ownable {
         table.insertIntoTable(tokenId, title, quarter, year, MDP, proposalIPFS, "", "", "", "", 1, 0);
     }
 
-    function constructSafeCallData(address caller) internal returns (bytes memory) {
-        bytes memory part1 = hex"b63e800d0000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000140000000000000000000000000f48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000";
-
-        bytes memory part2 = hex"0000000000000000000000000000000000000000000000000000000000000000";
-
-        return abi.encodePacked(part1, caller, part2);
+    function constructSafeCallData(address caller, address[] memory members) internal returns (bytes memory) {
+        address[] memory owners = new address[](1 + members.length);
+        owners[0] = msg.sender;
+        for (uint i = 0; i < members.length; i++) {
+            owners[i + 1] = members[i];
+        }
+        uint256 threshold = members.length / 2 + 1;
+        //see https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L84
+        bytes memory proxyInitData = abi.encodeWithSelector(
+            // function selector (setup)
+            0xb63e800d,
+            owners,
+            threshold,
+            // to
+            address(0x0),
+            // data
+            new bytes(0),
+            // fallback handler
+            address(0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4),
+            // payment token
+            address(0x0),
+            // payment
+            0,
+            // paymentReceiver
+            address(0x0)
+        );
+        return proxyInitData;
     }
-
-
 }

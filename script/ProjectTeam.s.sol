@@ -14,6 +14,7 @@ import {ProjectTeam} from "../src/ProjectTeam.sol";
 contract MyScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployerAddress = vm.addr(deployerPrivateKey);
         vm.startBroadcast(deployerPrivateKey);
 
         address TREASURY = 0xAF26a002d716508b7e375f1f620338442F5470c0;
@@ -26,7 +27,7 @@ contract MyScript is Script {
 
         IHats hats = IHats(hatsAddress);
 
-        uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
+        uint256 topHatId = hats.mintTopHat(deployerAddress, "", "");
 
         uint256 projectTeamAdminHatId = hats.createHat(topHatId, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
 
