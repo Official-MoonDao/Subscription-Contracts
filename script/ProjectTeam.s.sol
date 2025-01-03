@@ -29,7 +29,7 @@ contract MyScript is Script {
 
         uint256 topHatId = hats.mintTopHat(deployerAddress, "", "");
 
-        uint256 projectTeamAdminHatId = hats.createHat(topHatId, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
+        uint256 projectTeamAdminHatId = hats.createHat(topHatId, "ipfs://bafkreidfwizvfmfpzrl3p7kvy7a7pw3x4dzrdk5wckuxwtbs7a76hmcdn4", 1, TREASURY, TREASURY, true, "");
 
         ProjectTeam projectTeam = new ProjectTeam("ProjectTeam", "MDPT", TREASURY, hatsAddress);
 

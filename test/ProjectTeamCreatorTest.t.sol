@@ -70,6 +70,15 @@ contract CreatorTest is Test {
         creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
     }
 
+    function testMintBadUser() public {
+        address[] memory members = new address[](2);
+        members[0] = user2;
+        members[1] = user3;
+        vm.prank(user1);
+        vm.expectRevert();
+        creator.createProjectTeam(uri, uri, uri, "title",4,2024, 169, "IPFS_HASH", user1, members);
+    }
+
     function testUpdateFinalReportIPFS() public {
         address[] memory members = new address[](2);
         members[0] = user2;
