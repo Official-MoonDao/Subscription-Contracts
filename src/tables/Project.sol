@@ -21,7 +21,8 @@ contract Project is TablelandController, Ownable {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 "id integer primary key,"
-                "title text,"
+                "name text,"
+                "description text,"
                 "quarter integer,"
                 "year integer,"
                 "MDP integer,"
@@ -44,13 +45,15 @@ contract Project is TablelandController, Ownable {
     }
 
     // Let anyone insert into the table
-    function insertIntoTable(uint256 id, string memory title, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory rewardDistribution, uint256 active, uint256 eligible) external {
+    function insertIntoTable(uint256 id, string memory name, string memory description, uint256 quarter, uint256 year, uint256 MDP, string memory proposalIPFS, string memory proposalLink, string memory finalReportIPFS, string memory finalReportLink, string memory rewardDistribution, uint256 active, uint256 eligible) external {
         //only let projectTeam.projectTeamCreator insert
         require(_projectTeam.projectTeamCreator() == msg.sender, "Only ProjectTeamCreator can insert");
         string memory setters = string.concat(
                 Strings.toString(id),
                 ",",
-                SQLHelpers.quote(title),
+                SQLHelpers.quote(name),
+                ",",
+                SQLHelpers.quote(description),
                 ",",
                 Strings.toString(quarter),
                 ",",
@@ -78,7 +81,7 @@ contract Project is TablelandController, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,title,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,rewardDistribution,active,eligible",
+                "id,name,description,quarter,year,MDP,proposalIPFS,proposalLink,finalReportIPFS,finalReportLink,rewardDistribution,active,eligible",
                 setters
             )
         );
@@ -123,6 +126,11 @@ contract Project is TablelandController, Ownable {
         require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
         updateTableColManager(id, "quarter", Strings.toString(quarter));
         updateTableColManager(id, "year", Strings.toString(year));
+    }
+
+    function updateDescription(uint256 id, string memory description) external {
+        require (_projectTeam.isManager(id, msg.sender) || owner() == msg.sender, "Only Manager can update");
+        updateTableColManager(id, "description", description);
     }
 
     function updateTableCol(uint256 id, string memory col, string memory val) external onlyOwner {

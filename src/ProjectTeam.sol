@@ -27,6 +27,8 @@ contract ProjectTeam is ERC721URIStorage, URITemplate, Ownable {
 
     mapping(uint256 => address) public memberPassthroughModule;
 
+    mapping(uint256 => address) public projectLead;
+
     address public projectTeamCreator;
 
     IHats internal hats;

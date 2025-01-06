@@ -48,6 +48,10 @@ contract MyScript is Script {
         // TODO (grinning face with sweat emoji)
         string memory uriTemplate = string.concat("SELECT+json_object%28%27id%27%2C+id%2C+%27name%27%2C+name%2C+%27description%27%2C+description%2C+%27image%27%2C+image%2C+%27attributes%27%2C+json_array%28json_object%28%27trait_type%27%2C+%27twitter%27%2C+%27value%27%2C+twitter%29%2C+json_object%28%27trait_type%27%2C+%27communications%27%2C+%27value%27%2C+communications%29%2C+json_object%28%27trait_type%27%2C+%27website%27%2C+%27value%27%2C+website%29%2C+json_object%28%27trait_type%27%2C+%27view%27%2C+%27value%27%2C+view%29%2C+json_object%28%27trait_type%27%2C+%27formId%27%2C+%27value%27%2C+formId%29%29%29+FROM+",projectTable.getTableName(),"+WHERE+id%3D");
 		projectTeam.setURITemplate(uriTemplate);
+        // if on sepolia, setBaseURI to https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=
+        if (block.chainid == 11155111) {
+            projectTeam.setBaseURI("https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
+        }
 
         vm.stopBroadcast();
     }
