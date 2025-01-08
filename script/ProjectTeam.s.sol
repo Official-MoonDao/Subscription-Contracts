@@ -46,12 +46,36 @@ contract MyScript is Script {
         hats.changeHatEligibility(projectTeamAdminHatId, address(creator));
 
         // TODO (grinning face with sweat emoji)
-        string memory uriTemplate = string.concat("SELECT+json_object%28%27id%27%2C+id%2C+%27name%27%2C+name%2C+%27description%27%2C+description%2C+%27image%27%2C+image%2C+%27attributes%27%2C+json_array%28json_object%28%27trait_type%27%2C+%27twitter%27%2C+%27value%27%2C+twitter%29%2C+json_object%28%27trait_type%27%2C+%27communications%27%2C+%27value%27%2C+communications%29%2C+json_object%28%27trait_type%27%2C+%27website%27%2C+%27value%27%2C+website%29%2C+json_object%28%27trait_type%27%2C+%27view%27%2C+%27value%27%2C+view%29%2C+json_object%28%27trait_type%27%2C+%27formId%27%2C+%27value%27%2C+formId%29%29%29+FROM+",projectTable.getTableName(),"+WHERE+id%3D");
+        string memory uriTemplate = string.concat(
+            "SELECT+json_object%28"
+                "%27id%27%2C+id%2C+"
+                "%27name%27%2C+name%2C+"
+                "%27description%27%2C+description%2C+"
+                "%27image%27%2C+image%2C+"
+                "%27attributes%27%2C+json_array%28"
+                    "json_object%28%27trait_type%27%2C+%27quarter%27%2C+%27value%27%2C+quarter%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27year%27%2C+%27value%27%2C+year%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27MDP%27%2C+%27value%27%2C+MDP%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27proposalIPFS%27%2C+%27value%27%2C+proposalIPFS%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27proposalLink%27%2C+%27value%27%2C+proposalLink%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27finalReportIPFS%27%2C+%27value%27%2C+finalReportIPFS%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27finalReportLink%27%2C+%27value%27%2C+finalReportLink%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27rewardDistribution%27%2C+%27value%27%2C+rewardDistribution%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27upfrontPayments%27%2C+%27value%27%2C+upfrontPayments%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27active%27%2C+%27value%27%2C+active%29%2C+"
+                    "json_object%28%27trait_type%27%2C+%27eligible%27%2C+%27value%27%2C+eligible%29"
+                "%29%29+FROM+",
+            projectTable.getTableName(),
+            "+WHERE+id%3D"
+        );
+
 		projectTeam.setURITemplate(uriTemplate);
         // if on sepolia, setBaseURI to https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=
         if (block.chainid == 11155111) {
+            console.log("Setting base URI to https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
             projectTeam.setBaseURI("https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
         }
+        creator.transferOwnership(0x0724d0eb7b6d32AEDE6F9e492a5B1436b537262b);
 
         vm.stopBroadcast();
     }
