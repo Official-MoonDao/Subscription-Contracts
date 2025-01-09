@@ -67,7 +67,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
     }
 
     function testMintBadUser() public {
@@ -76,7 +76,7 @@ contract CreatorTest is Test {
         members[1] = user3;
         vm.prank(user1);
         vm.expectRevert();
-        creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
     }
 
     function testUpdateFinalReportIPFS() public {
@@ -84,7 +84,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
         vm.prank(user1);
         table.updateFinalReportIPFS(tokenId, "IPFS_HASH");
     }
@@ -94,7 +94,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
 
         vm.prank(user4);
         table.updateFinalReportIPFS(tokenId, "IPFS_HASH");
@@ -105,7 +105,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
 
         vm.prank(user2);
         vm.expectRevert();
@@ -118,7 +118,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
 
         vm.prank(user4);
         table.updateTableCol(tokenId, "active", '0');
@@ -129,7 +129,7 @@ contract CreatorTest is Test {
         members[0] = user2;
         members[1] = user3;
         vm.prank(user4);
-        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "UPFRONT", user1, members);
+        (uint256 tokenId, uint256 childHatId) = creator.createProjectTeam(uri, uri, uri, "title","description", "image", 4,2024, 169, "IPFS_HASH", "LINK", "UPFRONT", user1, members);
 
         vm.prank(user1);
         vm.expectRevert();

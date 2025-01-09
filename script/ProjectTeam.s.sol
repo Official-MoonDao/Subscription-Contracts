@@ -75,7 +75,7 @@ contract MyScript is Script {
             console.log("Setting base URI to https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
             projectTeam.setBaseURI("https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
         }
-        creator.transferOwnership(0x0724d0eb7b6d32AEDE6F9e492a5B1436b537262b);
+        //creator.transferOwnership(0x0724d0eb7b6d32AEDE6F9e492a5B1436b537262b);
 
         vm.stopBroadcast();
     }
