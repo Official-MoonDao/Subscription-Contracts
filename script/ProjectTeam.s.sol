@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import {Project} from "../src/tables/Project.sol";
-// import "../src/ERC5643.sol";
 import {ProjectTeamCreator} from "../src/ProjectTeamCreator.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
 import {ProjectTeam} from "../src/ProjectTeam.sol";
@@ -45,7 +44,6 @@ contract MyScript is Script {
         hats.mintHat(projectTeamAdminHatId, address(creator));
         hats.changeHatEligibility(projectTeamAdminHatId, address(creator));
 
-        // TODO (grinning face with sweat emoji)
         string memory uriTemplate = string.concat(
             "SELECT+json_object%28"
                 "%27id%27%2C+id%2C+"
@@ -70,12 +68,11 @@ contract MyScript is Script {
         );
 
 		projectTeam.setURITemplate(uriTemplate);
-        // if on sepolia, setBaseURI to https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=
-        if (block.chainid == 11155111) {
+        // if on sepolia, setBaseURI to testnet
+        if (block.chainid == 11155111 || block.chainid == 421614) {
             console.log("Setting base URI to https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
             projectTeam.setBaseURI("https://testnets.tableland.network/api/v1/query?unwrap=true&extract=true&statement=");
         }
-        //creator.transferOwnership(0x0724d0eb7b6d32AEDE6F9e492a5B1436b537262b);
 
         vm.stopBroadcast();
     }

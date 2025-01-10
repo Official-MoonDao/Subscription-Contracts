@@ -16,6 +16,7 @@ contract MyScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
+        address deployerAddress = vm.addr(deployerPrivateKey);
 
         address TREASURY = 0xAF26a002d716508b7e375f1f620338442F5470c0;
 
@@ -25,9 +26,9 @@ contract MyScript is Script {
 
         IHats hats = IHats(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137);
 
-        uint256 topHatId = 11350137546870419353554813351635264513601237801889581014544619914919936;
+        //uint256 topHatId = 11350137546870419353554813351635264513601237801889581014544619914919936;
 
-        // uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
+         uint256 topHatId = hats.mintTopHat(deployerAddress, "", "");
 
         uint256 moonDaoTeamAdminHatId = hats.createHat(topHatId, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
 
@@ -41,7 +42,7 @@ contract MyScript is Script {
 
         MoonDAOTeamCreator creator = new MoonDAOTeamCreator(0x3bc1A0Ad72417f2d411118085256fC53CBdDd137, 0x0a3f85fa597B6a967271286aA0724811acDF5CD9, 0x97b5621E4CD8F403ab5b6036181982752DE3aC44, address(team), 0x3E5c63644E683549055b9Be8653de26E0B4CD36E, 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2, address(teamTable), address(whitelist));
 
-        // creator.setOpenAccess(true);
+        creator.setOpenAccess(true);
 
         creator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
         team.setMoonDaoCreator(address(creator));
