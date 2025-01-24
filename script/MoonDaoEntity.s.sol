@@ -16,6 +16,7 @@ contract MyScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
+        address deployerAddress = vm.addr(deployerPrivateKey);
 
         address TREASURY = 0xAF26a002d716508b7e375f1f620338442F5470c0;
 
@@ -27,7 +28,7 @@ contract MyScript is Script {
 
         uint256 topHatId = 11350137546870419353554813351635264513601237801889581014544619914919936;
 
-        // uint256 topHatId = hats.mintTopHat(msg.sender, "", "");
+        // uint256 topHatId = hats.mintTopHat(deployerAddress, "", "");
 
         uint256 moonDaoTeamAdminHatId = hats.createHat(topHatId, "ipfs://QmTp6pUATgqg5YoZ66CDEV1UUjhPVyn2t5KFvXvoobRpuV", 1, TREASURY, TREASURY, true, "");
 
