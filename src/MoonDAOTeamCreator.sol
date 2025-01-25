@@ -56,12 +56,12 @@ contract MoonDAOTeamCreator is Ownable {
         openAccess = _openAccess;
     }
 
-    function createMoonDAOTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata bio, string calldata image, string calldata twitter, string calldata communications, string calldata website, string calldata _view, string memory formId) external payable returns (uint256 tokenId, uint256 childHatId) {
+    function createMoonDAOTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata bio, string calldata image, string calldata twitter, string calldata communications, string calldata website, string calldata _view, string memory formId, address[] memory members) external payable returns (uint256 tokenId, uint256 childHatId) {
 
         require(whitelist.isWhitelisted(msg.sender) || openAccess, "Only whitelisted addresses can create a MoonDAO Team");
         
 
-        bytes memory safeCallData = constructSafeCallData(msg.sender);
+        bytes memory safeCallData = constructSafeCallData(msg.sender, members);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
         
         //admin hat
@@ -99,12 +99,35 @@ contract MoonDAOTeamCreator is Ownable {
         table.insertIntoTable(tokenId, name, bio, image, twitter, communications, website, _view, formId);
     }
 
-    function constructSafeCallData(address caller) internal returns (bytes memory) {
-        bytes memory part1 = hex"b63e800d0000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000140000000000000000000000000f48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000";
-
-        bytes memory part2 = hex"0000000000000000000000000000000000000000000000000000000000000000";
-
-        return abi.encodePacked(part1, caller, part2);
+    function constructSafeCallData(address caller, address[] memory members) internal returns (bytes memory) {
+        uint256 maxOwners = 5;
+        uint256 ownersLength = members.length + 1 > maxOwners ? maxOwners : members.length + 1;
+        address[] memory owners = new address[](ownersLength);
+        owners[0] = msg.sender;
+        for (uint i = 1; i < ownersLength; i++) {
+            owners[i] = members[i - 1];
+        }
+        uint256 threshold = owners.length / 2 + 1;
+        //see https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L84
+        bytes memory proxyInitData = abi.encodeWithSelector(
+            // function selector (setup)
+            0xb63e800d,
+            owners,
+            threshold,
+            // to
+            address(0x0),
+            // data
+            new bytes(0),
+            // fallback handler
+            address(0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4),
+            // payment token
+            address(0x0),
+            // payment
+            0,
+            // paymentReceiver
+            address(0x0)
+        );
+        return proxyInitData;
     }
 
 
