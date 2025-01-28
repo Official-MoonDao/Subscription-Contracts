@@ -52,6 +52,14 @@ contract MoonDAOTeamCreator is Ownable {
         MoonDaoTeamAdminHatId = _MoonDaoTeamAdminHatId;
     }
 
+    function setMoonDaoTeamTable(address _table) external onlyOwner() {
+        table = MoonDaoTeamTableland(_table);
+    }
+
+    function setWhitelist(address _whitelist) external onlyOwner() {
+        whitelist = Whitelist(_whitelist);
+    }
+
     function setOpenAccess(bool _openAccess) external onlyOwner() {
         openAccess = _openAccess;
     }

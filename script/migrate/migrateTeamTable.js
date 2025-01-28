@@ -7,11 +7,12 @@ const {
 } = require("thirdweb");
 const { sepolia, arbitrum } = require("thirdweb/chains");
 const { privateKeyToAccount } = require("thirdweb/wallets");
+const TeamTableV2ABI = require("./TeamTableV2ABI.json");
 
 //Constants
 const ENV = "testnet";
 const TEAM_TABLE_NAME = "ENTITYTABLE_11155111_1731";
-const NEW_TEAM_TABLE_ADDRESS = "";
+const NEW_TEAM_TABLE_ADDRESS = "0xD2b39d20203e3aB62970E1A8Ea658D948eF4e8a9";
 
 const chain = ENV === "mainnet" ? arbitrum : sepolia;
 const tablelandEndpoint = `https://${
@@ -32,6 +33,7 @@ const newTeamTableContract = getContract({
   client,
   address: NEW_TEAM_TABLE_ADDRESS,
   chain,
+  abi: TeamTableV2ABI,
 });
 
 //Get the current team table
@@ -48,16 +50,27 @@ async function migrateTeamTable() {
       name,
       description,
       image,
-      website,
       twitter,
-      discord,
-      telegram,
+      communications,
+      website,
+      view,
+      formId,
     } = team;
 
     const transaction = prepareContractCall({
       contract: newTeamTableContract,
       method: "insertIntoTable",
-      args: [id, name, description, image, website, twitter, discord, telegram],
+      params: [
+        id,
+        name,
+        description,
+        image,
+        twitter,
+        communications,
+        website,
+        view,
+        formId,
+      ],
     });
 
     const receipt = await sendAndConfirmTransaction({
