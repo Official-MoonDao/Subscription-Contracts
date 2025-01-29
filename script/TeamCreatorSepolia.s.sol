@@ -14,7 +14,7 @@ Deploying a new Team Creator:
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
+import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreatorSepolia.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
 
 
