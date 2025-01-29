@@ -87,6 +87,35 @@ contract CrossChainMinter is NonblockingLzApp {
         uint64, /*_nonce*/
         bytes memory /*_payload*/
     ) internal override {
-        // No-op. We don't expect any messages coming back to Base in this example.
+         // 1. Decode the payload into the parameters we need to pass to mintTo(...)
+        (
+            address to,
+            string memory name,
+            string memory bio,
+            string memory image,
+            string memory location,
+            string memory discord,
+            string memory twitter,
+            string memory website,
+            string memory _view,
+            string memory formId
+        ) = abi.decode(
+            _payload,
+            (address, string, string, string, string, string, string, string, string, string)
+        );
+
+        // 2. Call the target NFT contract on Arbitrum
+        IDestinationNFT(NFT_CONTRACT).mintTo(
+            to,
+            name,
+            bio,
+            image,
+            location,
+            discord,
+            twitter,
+            website,
+            _view,
+            formId
+        );
     }
 }
