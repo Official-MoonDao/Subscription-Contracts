@@ -1,28 +1,26 @@
 pragma solidity ^0.8.20;
 
 /*
-1. Run script
-2. citizen.setUriTemplate();
+1. Make sure the citizen row controller is up to date with the citizen table columns
+2. Run script
+3. citizenTable.setAccessControl(citizenRowController)
 */
 
 import "forge-std/Script.sol";
-import "../src/tables/CitizenTableV2.sol";
 import {CitizenRowController} from "../src/tables/CitizenRowController.sol";
 contract MyScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address CITIZEN_ADDRESS = 0x6E464F19e0fEF3DB0f3eF9FD3DA91A297DbFE002;
+        address CITIZEN_ADDRESS = 0xEb9A6975381468E388C33ebeF4089Be86fe31d78;
+        address CITIZEN_TABLE_ADDRESS = 0x0000000000000000000000000000000000000000;
 
-        MoonDAOCitizenTable citizenTable = new MoonDAOCitizenTable("CITIZENTABLE");
-        citizenTable.setCitizenAddress(CITIZEN_ADDRESS);
 
         CitizenRowController citizenRowController = new CitizenRowController(address(citizenTable));
 
         citizenRowController.addTableOwner(CITIZEN_ADDRESS);
 
-        citizenTable.setAccessControl(address(citizenRowController));
 
         vm.stopBroadcast();
     }

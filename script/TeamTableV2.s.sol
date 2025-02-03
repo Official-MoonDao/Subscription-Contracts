@@ -16,8 +16,8 @@ contract MyScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        MoonDAOTeamTable teamTable = new MoonDAOTeamTable("TEAMTABLEV2");
-        teamTable.setMoonDaoTeam(0xEb9A6975381468E388C33ebeF4089Be86fe31d78);
+        MoonDAOTeamTable teamTable = new MoonDAOTeamTable("TEAMTABLE");
+        teamTable.setMoonDaoTeam(0xAB2C354eC32880C143e87418f80ACc06334Ff55F);
 
         vm.stopBroadcast();
     }

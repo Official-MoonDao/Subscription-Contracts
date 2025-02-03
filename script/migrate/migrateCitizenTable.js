@@ -7,12 +7,12 @@ const {
 } = require("thirdweb");
 const { sepolia, arbitrum } = require("thirdweb/chains");
 const { privateKeyToAccount } = require("thirdweb/wallets");
-const TeamTableV2ABI = require("./TeamTableV2ABI.json");
+const CitizenTableV2ABI = require("./CitizenTableV2ABI.json");
 
 //Constants
 const ENV = "mainnet";
-const TEAM_TABLE_NAME = "TEAMTABLE_42161_92";
-const NEW_TEAM_TABLE_ADDRESS = "0x1C9B9847bE88eb3F7154bA6A4560Cb8D52A13dD9";
+const CITIZEN_TABLE_NAME = "CITIZENTABLE_42161_98";
+const NEW_CITIZEN_TABLE_ADDRESS = "0x40C7F938F1df609092c101614E52d60673A7dC9F";
 
 const chain = ENV === "mainnet" ? arbitrum : sepolia;
 const tablelandEndpoint = `https://${
@@ -29,46 +29,50 @@ const account = privateKeyToAccount({
 });
 
 //Contracts
-const newTeamTableContract = getContract({
+const newCitizenTableContract = getContract({
   client,
-  address: NEW_TEAM_TABLE_ADDRESS,
+  address: NEW_CITIZEN_TABLE_ADDRESS,
   chain,
-  abi: TeamTableV2ABI,
+  abi: CitizenTableV2ABI,
 });
 
-async function migrateTeamTable() {
-  const statement = `SELECT * FROM ${TEAM_TABLE_NAME}`;
-  const teamTableRes = await fetch(
+async function migrateCitizenTable() {
+  const statement = `SELECT * FROM ${CITIZEN_TABLE_NAME}`;
+  const citizenTableRes = await fetch(
     `${tablelandEndpoint}?statement=${statement}`
   );
-  const teamTableData = await teamTableRes.json();
+  const citizenTableData = await citizenTableRes.json();
 
-  for (const team of teamTableData) {
+  for (const citizen of citizenTableData) {
     const {
       id,
       name,
       description,
       image,
+      location,
+      discord,
       twitter,
-      communications,
       website,
       view,
       formId,
-    } = team;
+      owner,
+    } = citizen;
 
     const transaction = prepareContractCall({
-      contract: newTeamTableContract,
+      contract: newCitizenTableContract,
       method: "insertIntoTable",
       params: [
         id,
         name,
         description,
         image,
+        location,
+        discord,
         twitter,
-        communications,
         website,
         view,
         formId,
+        owner,
       ],
     });
 
@@ -78,9 +82,9 @@ async function migrateTeamTable() {
     });
 
     console.log(
-      `Team ${id} has been migrated. Receipt: ${receipt.transactionHash}`
+      `Citizen ${id} has been migrated. Receipt: ${receipt.transactionHash}`
     );
   }
 }
 
-migrateTeamTable();
+migrateCitizenTable();
