@@ -18,7 +18,7 @@ contract MyScript is Script {
             lzEndpoint = 0x1a44076050125825900e736c501f859c50fE728c;
             eid = 30101;
         } else if (block.chainid == 42161) { //arbitrum
-            lzEndpoint = 0x1a44076050125825900e736c501f859c50fE728c
+            lzEndpoint = 0x1a44076050125825900e736c501f859c50fE728c;
             citizenAddress = 0x6E464F19e0fEF3DB0f3eF9FD3DA91A297DbFE002;
             eid = 30110
         } else if (block.chainid == 8453) { //base
