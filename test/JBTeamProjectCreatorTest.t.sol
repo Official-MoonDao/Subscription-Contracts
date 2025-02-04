@@ -28,12 +28,12 @@ contract JBTeamProjectCreatorTest is Test {
 
     bytes32 internal constant SALT = bytes32(abi.encode(0x4a75));
 
-    MoonDAOTeam moonDaoTeam;
-    MoonDAOTeamCreator moonDaoTeamCreator;
-    MoonDaoTeamTableland moonDaoTeamTable;
+    MoonDAOTeam moonDAOTeam;
+    MoonDAOTeamCreator moonDAOTeamCreator;
+    MoonDaoTeamTableland moonDAOTeamTable;
 
     JBTeamProjectCreator jbTeamProjectCreator;
-    JBTeamProjectsTable jbTeamProjectsTable;
+    JBTeamProjectTable jbTeamProjectTable;
     
     function setUp() public {
         vm.deal(user1, 10 ether);
@@ -52,55 +52,59 @@ contract JBTeamProjectCreatorTest is Test {
         Whitelist teamWhitelist = new Whitelist();
         Whitelist teamDiscountList = new Whitelist();
 
-        moonDaoTeamTable = new MoonDaoTeamTableland("MoonDaoTeamTable");
-        moonDaoTeam = new MoonDAOTeam("erc5369", "ERC5643", TREASURY, address(hatsBase), address(teamDiscountList));
-        moonDaoTeamCreator = new MoonDAOTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(moonDaoTeam), gnosisSafeAddress, address(proxyFactory), address(moonDaoTeamTable), address(teamWhitelist));
+        moonDAOTeamTable = new MoonDaoTeamTableland("MoonDaoTeamTable");
+        moonDAOTeam = new MoonDAOTeam("erc5369", "ERC5643", TREASURY, address(hatsBase), address(teamDiscountList));
+        moonDAOTeamCreator = new MoonDAOTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(moonDAOTeam), gnosisSafeAddress, address(proxyFactory), address(moonDAOTeamTable), address(teamWhitelist));
 
     
         uint256 topHatId = hats.mintTopHat(user1, "", "");
-        uint256 moonDaoTeamAdminHatId = hats.createHat(topHatId, "", 1, TREASURY, TREASURY, true, "");
+        uint256 moonDAOTeamAdminHatId = hats.createHat(topHatId, "", 1, TREASURY, TREASURY, true, "");
 
-        moonDaoTeamCreator.setOpenAccess(true);
-        moonDaoTeamTable.setMoonDaoTeam(address(moonDaoTeam));
-        moonDaoTeamCreator.setMoonDaoTeamAdminHatId(moonDaoTeamAdminHatId);
-        moonDaoTeam.setMoonDaoCreator(address(moonDaoTeamCreator));
-        hats.mintHat(moonDaoTeamAdminHatId, address(moonDaoTeamCreator));
+        moonDAOTeamCreator.setOpenAccess(true);
+        moonDAOTeamTable.setMoonDaoTeam(address(moonDAOTeam));
+        moonDAOTeamCreator.setMoonDaoTeamAdminHatId(moonDAOTeamAdminHatId);
+        moonDAOTeam.setMoonDaoCreator(address(moonDAOTeamCreator));
+        hats.mintHat(moonDAOTeamAdminHatId, address(moonDAOTeamCreator));
 
-        jbTeamProjectCreator = new JBTeamProjectCreator(zero, zero, address(moonDaoTeam), zero, user1);
-        jbTeamProjectsTable = new JBTeamProjectsTable("TestTeamProjectsTable", address(jbTeamProjectCreator));
-        jbTeamProjectCreator.setJBTeamProjectsTable(address(jbTeamProjectsTable));
+        jbTeamProjectCreator = new JBTeamProjectCreator(zero, zero, address(moonDAOTeam), zero, user1);
+        jbTeamProjectTable = new JBTeamProjectTable("TestTeamProjectTable", address(jbTeamProjectCreator));
+        jbTeamProjectCreator.setJBTeamProjectTable(address(jbTeamProjectTable));
 
         vm.stopPrank();
     }
 
     function testSetJBController() public {
+        vm.prank(user1);
         jbTeamProjectCreator.setJBController(address(0));
     }
 
     function testSetJBMultiTerminal() public {
+        vm.prank(user1);
         jbTeamProjectCreator.setJBMultiTerminal(address(0));
     }
 
     function testSetMoonDAOTreasury() public {
+        vm.prank(user1);
         jbTeamProjectCreator.setMoonDAOTreasury(address(0));
     }
 
     function testSetMoonDAOTeam() public {
-        jbTeamProjectCreator.setMoonDaoTeam(address(moonDaoTeam));
+        vm.prank(user1);
+        jbTeamProjectCreator.setMoonDAOTeam(address(moonDAOTeam));
     }
 
-    function testSetJBTeamProjectsTable() public {
-        jbTeamProjectCreator.setJBTeamProjectsTable(address(jbTeamProjectsTable));
+    function testSetJBTeamProjectTable() public {
+        vm.prank(user1);
+        jbTeamProjectCreator.setJBTeamProjectTable(address(jbTeamProjectTable));
     }
 
     function testCreateTeamProject() public {
-        vm.prank(user2);
-        moonDaoTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId");
-
+        vm.startPrank(user1);
+        moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
 
         jbTeamProjectCreator.createTeamProject(
            0,
-           user2,
+           user1,
            "",
            "This is a test project"
         );

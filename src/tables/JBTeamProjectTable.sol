@@ -156,7 +156,7 @@ contract JBTeamProjectTable is ERC721Holder, Ownable {
     // Delete a row from the table by ID 
     function deleteFromTable(uint256 id) external {
         if (msg.sender != owner()) {
-            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can delete");
+            require(_moonDaoTeam.isManager(idToTeamId[id], msg.sender), "Only Manager or Owner can delete");
         }
 
         // Specify filters for which row to delete

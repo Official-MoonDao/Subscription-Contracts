@@ -17,9 +17,9 @@ contract MyScript is Script {
 
         JBTeamProjectCreator jbTeamProjectCreator = new JBTeamProjectCreator(JB_CONTROLLER, JB_MULTI_TERMINAL, MOON_DAO_TEAM, JB_TEAM_PROJECTS_TABLE, MOON_DAO_TREASURY);
 
-        JBTeamProjectsTable jbTeamProjectsTable = new JBTeamProjectTable("JBTeamProjectTable", address(JBTeamProjectCreator));
-        
-        jbTeamProjectCreator.setJBTeamProjectsTable(address(jbTeamProjectsTable));
+        JBTeamProjectTable jbTeamProjectTable = new JBTeamProjectTable("JBTeamProjectTable", address(jbTeamProjectCreator));
+
+        jbTeamProjectCreator.setJBTeamProjectTable(address(jbTeamProjectTable));
 
         vm.stopBroadcast();
     }
