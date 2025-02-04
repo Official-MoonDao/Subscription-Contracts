@@ -18,10 +18,20 @@ contract MyScript is Script {
 
         address arbSepAddress = 0xfF113d31149F63732B8943a9Ea12b738cB343202;
         address sepAddress = 0x51a5cA8966cA71ac0A0D58DbeF2ec6a932e1490E;
+        //address arbAddress = 
+        //address baseAddress = 
         if(block.chainid == 1) { //mainnet
             eid = 30101;
+        } else if (block.chainid == 42161) { //arbitrum
+            uint32 baseEid = 30184;
+            CrossChainMinter minter = CrossChainMinter(arbAddress);
+            minter.setPeer(baseEid , addressToBytes32(baseAddress));
+            eid = 30110;
         } else if (block.chainid == 8453) { //base
-            eid = 8453;
+            uint32 arbEid = 30110;
+            CrossChainMinter minter = CrossChainMinter(baseAddress);
+            minter.setPeer(arbEid , addressToBytes32(arbAddress));
+            eid = 30184;
         } else if (block.chainid == 84532) { //base-sep
             eid = 40245;
         } else if (block.chainid == 421614) { //arb-sep
