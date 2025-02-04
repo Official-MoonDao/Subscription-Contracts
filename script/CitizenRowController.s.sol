@@ -17,7 +17,7 @@ contract MyScript is Script {
         address CITIZEN_TABLE_ADDRESS = 0x0000000000000000000000000000000000000000;
 
 
-        CitizenRowController citizenRowController = new CitizenRowController(address(citizenTable));
+        CitizenRowController citizenRowController = new CitizenRowController(CITIZEN_TABLE_ADDRESS);
 
         citizenRowController.addTableOwner(CITIZEN_ADDRESS);
 
