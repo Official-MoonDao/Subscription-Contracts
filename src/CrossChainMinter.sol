@@ -21,6 +21,13 @@ interface ICitizenContract {
 }
 
 
+/**
+Deploy on source and destination chain with appropriate lzEndpoint.
+(https://docs.layerzero.network/v2/developers/evm/technical-reference/deployed-contracts)
+
+Then run script/CrossChainMinterConnect.s.sol on both chains with the appropriate source address,
+destination address and destination endpoint id.
+*/
 contract CrossChainMinter is OApp {
     uint256 public constant MINT_PRICE = 0.0111 ether;
 
