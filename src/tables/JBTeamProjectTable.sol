@@ -8,7 +8,7 @@ import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Hol
 import {MoonDAOTeam} from "../ERC5643.sol";
 
 
-contract JBTeamProjectsTable is ERC721Holder, Ownable {
+contract JBTeamProjectTable is ERC721Holder, Ownable {
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     MoonDAOTeam public _moonDaoTeam;
@@ -20,7 +20,7 @@ contract JBTeamProjectsTable is ERC721Holder, Ownable {
     event ProjectUpdated(uint256 indexed id, uint256 indexed teamId);
     event ProjectDeleted(uint256 indexed id, uint256 indexed teamId);
 
-    modifier onlyOwnerOrCreator() {
+    modifier onlyOperators() {
         require(msg.sender == owner() || msg.sender == jbTeamProjectCreator, "Only Owner or Creator can call this function");
         _;
     }
@@ -47,8 +47,41 @@ contract JBTeamProjectsTable is ERC721Holder, Ownable {
         jbTeamProjectCreator = _jbTeamProjectCreator;
     }
 
+    function addColumn(string memory columnName, string memory columnType) external onlyOwner {
+        string memory alterStatement = string.concat(
+            "ALTER TABLE ",
+            SQLHelpers.toNameFromId(_TABLE_PREFIX, _tableId),
+            " ADD COLUMN ",
+            columnName,
+            " ",
+            columnType
+        );
+
+        TablelandDeployments.get().mutate(
+            address(this),
+            _tableId,
+            alterStatement
+        );
+    }
+
+    function deleteColumn(string memory columnName) external onlyOwner {
+        string memory alterStatement = string.concat(
+            "ALTER TABLE ",
+            SQLHelpers.toNameFromId(_TABLE_PREFIX, _tableId),
+            " DROP COLUMN ",
+            columnName
+        );
+
+        TablelandDeployments.get().mutate(
+            address(this),
+            _tableId,
+            alterStatement
+        );
+    }
+
+
     // Let anyone insert into the table
-    function insertIntoTable(uint256 projectId, uint256 teamId) external onlyOwnerOrCreator {
+    function insertIntoTable(uint256 teamId, uint256 projectId) external onlyOperators {
         string memory setters = string.concat(
                 Strings.toString(currId), // Convert to a string
                 ",",
@@ -71,34 +104,32 @@ contract JBTeamProjectsTable is ERC721Holder, Ownable {
         currId += 1;
     }
 
-    function updateTable(uint256 id, uint256 projectId, uint256 teamId) external onlyOwnerOrCreator {
-        if (msg.sender != owner()) {
-            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can update");
-        }
-        require (idToTeamId[id] == teamId, "You can only update a project by your team");
+    function updateTableDynamic(uint256 id, string[] memory columns, string[] memory values) external {
+        require(columns.length == values.length, "Columns and values length mismatch");
 
-        // Set the values to update
-        string memory setters = string.concat(
-            "projectId=",
-            Strings.toString(projectId),
-            ",teamId=",
-            Strings.toString(teamId)
-        );                      
-        // Specify filters for which row to update
+        // Manually create key-value pairs for setters
+        string memory setters = string.concat(columns[0], "=", SQLHelpers.quote(values[0]));
+
+        for (uint256 i = 1; i < columns.length; i++) {
+            setters = string.concat(setters, ",", columns[i], "=", SQLHelpers.quote(values[i]));
+        }
+
         string memory filters = string.concat(
             "id=",
-            Strings.toString(id)
+            Strings.toString(id),
+            "teamId=",
+            Strings.toString(idToTeamId[id])
         );
-        // Mutate a row at `id` with a new `val`
+
         TablelandDeployments.get().mutate(
             address(this),
             _tableId,
             SQLHelpers.toUpdate(_TABLE_PREFIX, _tableId, setters, filters)
         );
-        emit ProjectUpdated(id, teamId);
     }
+
     // Update only the row that the caller inserted
-    function updateTableCol(uint256 id, uint256 teamId, string memory colName, string memory val) external onlyOwnerOrCreator {
+    function updateTableCol(uint256 id, uint256 teamId, string memory colName, string memory val) external {
         require (Strings.equal(colName, "id") == false, "Cannot update id");
         require (Strings.equal(colName, "teamId") == false, "Cannot update teamId");
         if (msg.sender != owner()) {
@@ -123,7 +154,11 @@ contract JBTeamProjectsTable is ERC721Holder, Ownable {
 
 
     // Delete a row from the table by ID 
-    function deleteFromTable(uint256 id, uint256 teamId) external onlyOwnerOrCreator {
+    function deleteFromTable(uint256 id) external {
+        if (msg.sender != owner()) {
+            require(_moonDaoTeam.isManager(teamId, msg.sender), "Only Manager or Owner can delete");
+        }
+
         // Specify filters for which row to delete
         string memory filters = string.concat(
             "id=",
@@ -135,7 +170,7 @@ contract JBTeamProjectsTable is ERC721Holder, Ownable {
             _tableId,
             SQLHelpers.toDelete(_TABLE_PREFIX, _tableId, filters)
         );
-        emit ProjectDeleted(id, teamId);
+        emit ProjectDeleted(id, idToTeamId[id]);
     }
 
     // Set the ACL controller to enable row-level writes with dynamic policies

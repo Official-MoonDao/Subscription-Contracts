@@ -28,9 +28,6 @@
 [submodule "lib/hats-module"]
 	path = lib/hats-module
 	url = https://github.com/Hats-Protocol/hats-module
-[submodule "lib/juice-contracts-v3"]
-	path = lib/juice-contracts-v3
-	url = https://github.com/jbx-protocol/juice-contracts-v3
 [submodule "lib/nana-core"]
 	path = lib/nana-core
 	url = https://github.com/bananapus/nana-core
