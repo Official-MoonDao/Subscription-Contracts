@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "../src/ERC5643.sol";
 import "../src/GnosisSafeProxyFactory.sol";
 import {TeamRowController} from "../src/tables/TeamRowController.sol";
-import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreatorSepolia.sol";
+import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
 import {PassthroughModule} from "../src/PassthroughModule.sol";
 import {IHats} from "@hats/Interfaces/IHats.sol";
 import {Hats} from "@hats/Hats.sol";
