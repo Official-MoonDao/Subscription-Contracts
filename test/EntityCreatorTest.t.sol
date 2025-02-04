@@ -70,7 +70,7 @@ contract CreatorTest is Test {
 
     function testMint() public {
         vm.prank(user1);
-        creator.createMoonDAOTeam{value: 0.555 ether}(uri, uri, uri, "name", "bio", "image", "twitter", "communications", "website", "view", "formId");
+        creator.createMoonDAOTeam{value: 0.555 ether}(uri, uri, uri, "name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
     }
 
 
