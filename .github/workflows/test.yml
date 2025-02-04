@@ -45,7 +45,7 @@ jobs:
         run: |
           cd evm-tableland
           npm install
-        id: install-tableland=dependencies
+        id: install-tableland-dependencies
 
       - name: Run Local Chain with Anvil
         run: |
