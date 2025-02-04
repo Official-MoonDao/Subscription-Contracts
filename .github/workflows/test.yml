@@ -30,17 +30,22 @@ jobs:
         with:
           version: nightly
 
+      - name: Install npm dependencies
+        run: |
+          npm install
+        id: install-dependencies
+
       - name: Clone EVM Tableland Repository
         run: |
           git clone https://github.com/tablelandnetwork/evm-tableland.git
           cd evm-tableland
         id: clone
 
-      - name: Install dependencies
+      - name: Install tableland dependencies
         run: |
           cd evm-tableland
           npm install
-        id: install-dependencies
+        id: install-tableland=dependencies
 
       - name: Run Local Chain with Anvil
         run: |
