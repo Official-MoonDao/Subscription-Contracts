@@ -25,18 +25,16 @@ contract MyScript is Script {
         } else if (block.chainid == 11155111) { //sep
             eid = 40161;
         }
-        // testing arb-sep -> sep
-        uint16 destinationEid = 40161;
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
+        // testing arb-sep -> sep
+        uint16 destinationEid = 40161;
         address sourceAddress = 0xfF113d31149F63732B8943a9Ea12b738cB343202;
-        address destinationAddress = 0x51a5cA8966cA71ac0A0D58DbeF2ec6a932e1490E;
         
         CrossChainMinter minter = CrossChainMinter(sourceAddress);
-        // empty bytes
         bytes memory _options = OptionsBuilder.newOptions().addExecutorLzReceiveOption(300000, 0.0111 ether);
 
-        minter.crossChainMint{value:0.022 ether}(destinationEid , _options, 0x47ee48E1766BaC43dEc10215Dd636102126eA8fa, "name", "bio", "image", "location", "discord", "twitter", "website", "_view", "formId");
+        minter.crossChainMint{value:0.022 ether}(destinationEid , _options, 0x7a524e73eaB5D7A7fad9FA9fE11A24eBF11971a0, "name", "bio", "image", "location", "discord", "twitter", "website", "_view", "formId");
         vm.stopBroadcast();
     }
 }
