@@ -9,7 +9,7 @@ contract MyScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address JB_CONTROLLER = 0x7724a705d345c2a09B576E7D06dFd7ef2A62dae9;
+        address JB_CONTROLLER = 0xd1F037EFeBF187A59520bcCe9D1DAbE5CcfAb2c3;
         address JB_MULTI_TERMINAL = 0xfCFb61F66E44084b33ccBdA85e09665DDfEE64Eb;
         address MOON_DAO_TEAM = 0x21d2C4bEBd1AEb830277F8548Ae30F505551f961;
         address MISSION_PROJECTS_TABLE = 0x0000000000000000000000000000000000000000;
