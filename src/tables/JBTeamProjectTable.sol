@@ -79,13 +79,11 @@ contract JBTeamProjectTable is ERC721Holder, Ownable {
         );
     }
 
-
-    // Let anyone insert into the table
     function insertIntoTable(uint256 teamId, uint256 projectId) external onlyOperators {
         string memory setters = string.concat(
-                Strings.toString(currId), // Convert to a string
+                Strings.toString(currId),
                 ",",
-                Strings.toString(projectId), // Wrap strings in single quotes with the `quote` method
+                Strings.toString(projectId),
                 ",",
                 Strings.toString(teamId)
         );
@@ -107,7 +105,7 @@ contract JBTeamProjectTable is ERC721Holder, Ownable {
     function updateTableDynamic(uint256 id, string[] memory columns, string[] memory values) external {
         require(columns.length == values.length, "Columns and values length mismatch");
 
-        // Manually create key-value pairs for setters
+        //Create key-value pairs for setters
         string memory setters = string.concat(columns[0], "=", SQLHelpers.quote(values[0]));
 
         for (uint256 i = 1; i < columns.length; i++) {
@@ -128,7 +126,6 @@ contract JBTeamProjectTable is ERC721Holder, Ownable {
         );
     }
 
-    // Update only the row that the caller inserted
     function updateTableCol(uint256 id, uint256 teamId, string memory colName, string memory val) external {
         require (Strings.equal(colName, "id") == false, "Cannot update id");
         require (Strings.equal(colName, "teamId") == false, "Cannot update teamId");
@@ -152,8 +149,6 @@ contract JBTeamProjectTable is ERC721Holder, Ownable {
         emit ProjectUpdated(id, teamId);
     }
 
-
-    // Delete a row from the table by ID 
     function deleteFromTable(uint256 id) external {
         if (msg.sender != owner()) {
             require(_moonDaoTeam.isManager(idToTeamId[id], msg.sender), "Only Manager or Owner can delete");
