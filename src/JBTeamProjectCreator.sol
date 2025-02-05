@@ -152,13 +152,13 @@ contract JBTeamProjectCreator is Ownable {
         });
 
         rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[0] = JBCurrencyAmount({
-            amount: 4_200_000_000_000_000_000, // 4.2 ETH can be paid out.
-            currency: 61166 // ETH
+            amount: 6_900_000_000_000_000_000, // 6.9 USD worth of ETH can be paid out.
+            currency: 1 // USD 
         });
 
         rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[1] = JBCurrencyAmount({
-            amount: 6_900_000_000_000_000_000, // 6.9 USD worth of ETH can be paid out.
-            currency: 1 // USD 
+            amount: 4_200_000_000_000_000_000, // 4.2 ETH can be paid out.
+            currency: 61166 // ETH
         });
 
         rulesetConfigurations[0].fundAccessLimitGroups[0].surplusAllowances[0] = JBCurrencyAmount({
