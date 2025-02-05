@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {JBTeamProjectTable} from "./tables/JBTeamProjectTable.sol";
+import {MissionTable} from "./tables/MissionTable.sol";
 import {MoonDAOTeam} from "./ERC5643.sol";
 import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 import {JBRulesetConfig} from "@nana-core/structs/JBRulesetConfig.sol";
@@ -17,20 +17,20 @@ import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import {IJBSplitHook} from "@nana-core/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
-contract JBTeamProjectCreator is Ownable {
+contract MissionCreator is Ownable {
     IJBController public jbController;
     address public jbMultiTerminalAddress;
     MoonDAOTeam public moonDAOTeam;
-    JBTeamProjectTable public jbTeamProjectTable;
+    MissionTable public missionTable;
     address public moonDAOTreasury;
 
-    event ProjectCreated(uint256 indexed id, uint256 indexed teamId);
+    event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId);
 
-    constructor(address _jbController, address _jbMultiTerminal, address _moonDAOTeam, address _jbTeamProjectTable, address _moonDAOTreasury) Ownable(msg.sender) {
+    constructor(address _jbController, address _jbMultiTerminal, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
         jbController = IJBController(_jbController);
         jbMultiTerminalAddress = _jbMultiTerminal;
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
-        jbTeamProjectTable = JBTeamProjectTable(_jbTeamProjectTable);
+        missionTable = MissionTable(_missionTable);
         moonDAOTreasury = payable(_moonDAOTreasury);
     }
 
@@ -50,13 +50,13 @@ contract JBTeamProjectCreator is Ownable {
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
     }
 
-    function setJBTeamProjectTable(address _jbTeamProjectTable) external onlyOwner {
-        jbTeamProjectTable = JBTeamProjectTable(_jbTeamProjectTable);
+    function setMissionTable(address _missionTable) external onlyOwner {
+        missionTable = MissionTable(_missionTable);
     }
 
-    function createTeamProject(uint256 teamId, address to, string calldata projectUri, string calldata memo) external returns (uint256) {
+    function createMission(uint256 teamId, address to, string calldata projectUri, string calldata memo) external returns (uint256) {
         if(msg.sender != owner()) {
-            require(moonDAOTeam.isManager(teamId, msg.sender), "Only manager of the team or owner of the contract can create a juicebox team project.");
+            require(moonDAOTeam.isManager(teamId, msg.sender), "Only manager of the team or owner of the contract can create a mission.");
         }
 
         address payable toPayable = payable(to);
@@ -187,11 +187,11 @@ contract JBTeamProjectCreator is Ownable {
             memo
         );
 
-        jbTeamProjectTable.insertIntoTable(teamId, projectId);
+        uint256 missionId = missionTable.insertIntoTable(teamId, projectId);
 
-        emit ProjectCreated(projectId, teamId);
+        emit MissionCreated(missionId, teamId, projectId);
 
-        return projectId;
+        return missionId;
     }
 }
 

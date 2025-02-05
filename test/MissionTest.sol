@@ -5,8 +5,8 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import {MoonDAOTeam} from "../src/ERC5643.sol";
 import {GnosisSafeProxyFactory} from "../src/GnosisSafeProxyFactory.sol";
-import {JBTeamProjectCreator} from "../src/JBTeamProjectCreator.sol";
-import {JBTeamProjectTable} from "../src/tables/JBTeamProjectTable.sol";
+import {MissionCreator} from "../src/MissionCreator.sol";
+import {MissionTable} from "../src/tables/MissionTable.sol";
 import {MoonDaoTeamTableland} from "../src/tables/MoonDaoTeamTableland.sol";
 import {TeamRowController} from "../src/tables/TeamRowController.sol";
 import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
@@ -17,7 +17,7 @@ import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
 import {deployModuleFactory} from "@hats-module/utils/DeployFunctions.sol";
 import {Whitelist} from "../src/Whitelist.sol";
 
-contract JBTeamProjectCreatorTest is Test {
+contract MissionTest is Test {
 
     address zero = address(0);
     address user1 = address(0x1);
@@ -32,8 +32,8 @@ contract JBTeamProjectCreatorTest is Test {
     MoonDAOTeamCreator moonDAOTeamCreator;
     MoonDaoTeamTableland moonDAOTeamTable;
 
-    JBTeamProjectCreator jbTeamProjectCreator;
-    JBTeamProjectTable jbTeamProjectTable;
+    MissionCreator missionCreator;
+    MissionTable missionTable;
     
     function setUp() public {
         vm.deal(user1, 10 ether);
@@ -66,9 +66,9 @@ contract JBTeamProjectCreatorTest is Test {
         moonDAOTeam.setMoonDaoCreator(address(moonDAOTeamCreator));
         hats.mintHat(moonDAOTeamAdminHatId, address(moonDAOTeamCreator));
 
-        jbTeamProjectCreator = new JBTeamProjectCreator(zero, zero, address(moonDAOTeam), zero, user1);
-        jbTeamProjectTable = new JBTeamProjectTable("TestTeamProjectTable", address(jbTeamProjectCreator));
-        jbTeamProjectCreator.setJBTeamProjectTable(address(jbTeamProjectTable));
+        missionCreator = new MissionCreator(zero, zero, address(moonDAOTeam), zero, user1);
+        missionTable = new MissionTable("TestMissionTable", address(missionCreator));
+        missionCreator.setMissionTable(address(missionTable));
 
         vm.stopPrank();
     }
