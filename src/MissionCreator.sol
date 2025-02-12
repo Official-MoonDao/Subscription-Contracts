@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -64,6 +65,7 @@ contract MissionCreator is Ownable {
 
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
 
+        //TODO: Configure ruleset
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({
             mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
@@ -96,12 +98,12 @@ contract MissionCreator is Ownable {
             fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
 
+        //TODO: Configure split groups
         rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
             splits: new JBSplit[](2) // Initialize as dynamic array
         });
-
         rulesetConfigurations[0].splitGroups[0].splits[0] = JBSplit({
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
@@ -110,7 +112,6 @@ contract MissionCreator is Ownable {
             lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-
         rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
             percent: 900_000_000, // 90%, out of 1_000_000_000
             projectId: 0, // Not used.
@@ -119,13 +120,11 @@ contract MissionCreator is Ownable {
             lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-
         rulesetConfigurations[0].splitGroups[1] = JBSplitGroup({
             groupId: 1, // This is the group ID of splits for reserved token distribution. 
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
             splits: new JBSplit[](2) // Initialize as dynamic array
         });
-
         rulesetConfigurations[0].splitGroups[1].splits[0] = JBSplit({
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
@@ -134,7 +133,6 @@ contract MissionCreator is Ownable {
             lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-
         rulesetConfigurations[0].splitGroups[1].splits[1] = JBSplit({
             percent: 300_000_000, // 30%, out of 1_000_000_000
             projectId: 420, // The projectId of the project to send the split to.
@@ -144,6 +142,7 @@ contract MissionCreator is Ownable {
             hook: IJBSplitHook(address(0)) // Not used.
         });
 
+        //TODO: Add fund access limit groups
         rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
             terminal: jbMultiTerminalAddress, // The terminal to create access limit rules for. Use the address directly.
             token: address(0xEEEe), // Ensure this is a valid token address
@@ -151,28 +150,29 @@ contract MissionCreator is Ownable {
             surplusAllowances: new JBCurrencyAmount[](1) // Initialize as dynamic array
         });
 
+        //TODO: Add payout limits
         rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[0] = JBCurrencyAmount({
             amount: 6_900_000_000_000_000_000, // 6.9 USD worth of ETH can be paid out.
             currency: 1 // USD 
         });
-
         rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[1] = JBCurrencyAmount({
             amount: 4_200_000_000_000_000_000, // 4.2 ETH can be paid out.
             currency: 61166 // ETH
         });
 
+        //TODO: Add surplus allowances
         rulesetConfigurations[0].fundAccessLimitGroups[0].surplusAllowances[0] = JBCurrencyAmount({
             amount: 700_000_000_000_000_000_000, // 700 USD worth of ETH can be used by the project owner discretionarily from the project's surplus.
             currency: 1 // USD
         });
 
+        //TODO: Add terminal configurations
         JBTerminalConfig[] memory terminalConfigurations = new JBTerminalConfig[](1);
         terminalConfigurations[0] = JBTerminalConfig({
             terminal: terminal, // A terminal to access funds through. Cast to IJBMultiTerminal
             // The tokens to accept through the given terminal, and how they should be accounted for.
             accountingContextsToAccept: new JBAccountingContext[](1) // Initialize as dynamic array
         });
-
         terminalConfigurations[0].accountingContextsToAccept[0] = JBAccountingContext({
             token: address(0xEEEe), // The token to accept through the given terminal. Ensure this is a valid token address
             decimals: 18, // The number of decimals the token is accounted with as a fixed point number.
