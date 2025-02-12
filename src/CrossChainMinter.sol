@@ -18,6 +18,7 @@ interface ICitizenContract {
         string memory _view,
         string memory formId
     ) external payable;
+    function getRenewalPrice(address _addr, uint64 _duration) external view returns (uint256);
 }
 
 
@@ -29,8 +30,6 @@ Then run script/CrossChainMinterConnect.s.sol on both chains with the appropriat
 destination address and destination endpoint id.
 */
 contract CrossChainMinter is OApp {
-    uint256 public constant MINT_PRICE = 0.0111 ether;
-
     address public citizenAddress;
     constructor(address _endpoint, address _citizenContract) OApp(_endpoint, msg.sender) Ownable(msg.sender) {
         citizenAddress = _citizenContract;
@@ -50,7 +49,6 @@ contract CrossChainMinter is OApp {
         string memory _view,
         string memory formId
     ) external payable {
-        require(msg.value >= MINT_PRICE, "Insufficient payment");
         bytes memory payload = abi.encode(
             to,
             name,
@@ -71,6 +69,10 @@ contract CrossChainMinter is OApp {
             MessagingFee(msg.value, 0),
             payable(msg.sender)
         );
+    }
+
+    function setCitizenAddress(address _citizenAddress) external onlyOwner {
+        citizenAddress = _citizenAddress;
     }
 
     function _lzReceive(
@@ -95,8 +97,8 @@ contract CrossChainMinter is OApp {
             payload,
             (address, string, string, string, string, string, string, string, string, string)
         );
-
-        ICitizenContract(citizenAddress).mintTo{value: 0.0111 ether}(
+        uint256 cost = ICitizenContract(citizenAddress).getRenewalPrice(to, 365 * 24 * 60 * 60);
+        ICitizenContract(citizenAddress).mintTo{value: cost}(
             to,
             name,
             bio,

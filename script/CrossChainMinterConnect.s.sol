@@ -16,10 +16,10 @@ contract MyScript is Script {
         vm.startBroadcast(deployerPrivateKey);
         uint32 eid;
 
-        address arbSepAddress = 0xfF113d31149F63732B8943a9Ea12b738cB343202;
-        address sepAddress = 0x51a5cA8966cA71ac0A0D58DbeF2ec6a932e1490E;
-        //address arbAddress = 
-        //address baseAddress = 
+        address arbSepAddress = 0x77E5c79341eeE988634caa5B28C16638F1Eb91E1;
+        address sepAddress = 0x6f80846e64931731Fcb3c24c9902b20af864882f;
+        address arbAddress = 0x613B64AE4A5f5354bA15c9e5c988A6A32c14b6da;
+        address baseAddress = 0xe5709Bc44427DCEF81fF2F718DFc6A032fD23bbF;
         if(block.chainid == 1) { //mainnet
             eid = 30101;
         } else if (block.chainid == 42161) { //arbitrum
@@ -32,8 +32,6 @@ contract MyScript is Script {
             CrossChainMinter minter = CrossChainMinter(baseAddress);
             minter.setPeer(arbEid , addressToBytes32(arbAddress));
             eid = 30184;
-        } else if (block.chainid == 84532) { //base-sep
-            eid = 40245;
         } else if (block.chainid == 421614) { //arb-sep
             eid = 40231;
             // testing arb-sep -> sep
