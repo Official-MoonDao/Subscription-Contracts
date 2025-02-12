@@ -75,34 +75,34 @@ contract MissionTest is Test {
 
     function testSetJBController() public {
         vm.prank(user1);
-        jbTeamProjectCreator.setJBController(address(0));
+        missionCreator.setJBController(address(0));
     }
 
     function testSetJBMultiTerminal() public {
         vm.prank(user1);
-        jbTeamProjectCreator.setJBMultiTerminal(address(0));
+        missionCreator.setJBMultiTerminal(address(0));
     }
 
     function testSetMoonDAOTreasury() public {
         vm.prank(user1);
-        jbTeamProjectCreator.setMoonDAOTreasury(address(0));
+        missionCreator.setMoonDAOTreasury(address(0));
     }
 
     function testSetMoonDAOTeam() public {
         vm.prank(user1);
-        jbTeamProjectCreator.setMoonDAOTeam(address(moonDAOTeam));
+        missionCreator.setMoonDAOTeam(address(moonDAOTeam));
     }
 
     function testSetJBTeamProjectTable() public {
         vm.prank(user1);
-        jbTeamProjectCreator.setJBTeamProjectTable(address(jbTeamProjectTable));
+        missionCreator.setJBTeamProjectTable(address(missionTable));
     }
 
     function testCreateTeamProject() public {
         vm.startPrank(user1);
         moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
 
-        jbTeamProjectCreator.createTeamProject(
+        missionCreator.createMission(
            0,
            user1,
            "",
