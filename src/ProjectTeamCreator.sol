@@ -46,8 +46,8 @@ contract ProjectTeamCreator is Ownable {
         projectTeamAdminHatId = _projectTeamAdminHatId;
     }
 
-    function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata description, string calldata image, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, string calldata proposalLink, string calldata upfrontPayments, address lead, address[] memory members) external onlyOwner() returns (uint256 tokenId, uint256 childHatId) {
-        bytes memory safeCallData = constructSafeCallData(lead, members);
+    function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata description, string calldata image, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, string calldata proposalLink, string calldata upfrontPayments, address lead, address[] memory members, address[] memory signers) external onlyOwner() returns (uint256 tokenId, uint256 childHatId) {
+        bytes memory safeCallData = constructSafeCallData(signers);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
 
         //admin hat
@@ -81,20 +81,13 @@ contract ProjectTeamCreator is Ownable {
         table.insertIntoTable(tokenId, name, description, image, quarter, year, MDP, proposalIPFS, proposalLink, "", "", "", upfrontPayments, 1, 0);
     }
 
-    function constructSafeCallData(address caller, address[] memory members) internal returns (bytes memory) {
-        uint256 maxOwners = 5;
-        uint256 ownersLength = members.length + 1 > maxOwners ? maxOwners : members.length + 1;
-        address[] memory owners = new address[](ownersLength);
-        owners[0] = msg.sender;
-        for (uint i = 1; i < ownersLength; i++) {
-            owners[i] = members[i - 1];
-        }
-        uint256 threshold = owners.length / 2 + 1;
+    function constructSafeCallData(address[] memory signers) internal returns (bytes memory) {
+        uint256 threshold = signers.length / 2 + 1;
         //see https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L84
         bytes memory proxyInitData = abi.encodeWithSelector(
             // function selector (setup)
             0xb63e800d,
-            owners,
+            signers,
             threshold,
             // to
             address(0x0),
