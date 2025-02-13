@@ -28,3 +28,9 @@
 [submodule "lib/hats-module"]
 	path = lib/hats-module
 	url = https://github.com/Hats-Protocol/hats-module
+[submodule "lib/nana-core"]
+	path = lib/nana-core
+	url = https://github.com/bananapus/nana-core
+[submodule "lib/permit2"]
+	path = lib/permit2
+	url = https://github.com/uniswap/permit2
