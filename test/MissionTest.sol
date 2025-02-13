@@ -93,9 +93,9 @@ contract MissionTest is Test {
         missionCreator.setMoonDAOTeam(address(moonDAOTeam));
     }
 
-    function testSetJBTeamProjectTable() public {
+    function testSetMissionTable() public {
         vm.prank(user1);
-        missionCreator.setJBTeamProjectTable(address(missionTable));
+        missionCreator.setMissionTable(address(missionTable));
     }
 
     function testCreateTeamProject() public {
