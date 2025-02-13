@@ -8,7 +8,7 @@
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "@tableland/evm": "^6.1.0",
-    "solidity-bytes-utils": "^0.8.2"
+    "solidity-bytes-utils": "^0.8.2",
     "dotenv": "^16.4.7",
     "thirdweb": "^5.86.2"
   },
