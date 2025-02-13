@@ -7,5 +7,7 @@ hats-protocol/=lib/hats-protocol/src/
 @openzeppelin/=./lib/openzeppelin/
 @tableland/=lib/evm-tableland/
 erc721a-upgradeable/=lib/erc721a-upgradeable/
+@nana-core=lib/nana-core/src/
+@uniswap/=lib/
 
 solady/=lib/solady/src/
