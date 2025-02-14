@@ -34,7 +34,7 @@ contract MissionTest is Test {
 
     MissionCreator missionCreator;
     MissionTable missionTable;
-    
+
     function setUp() public {
         vm.deal(user1, 10 ether);
         vm.deal(user2, 10 ether);
@@ -56,7 +56,7 @@ contract MissionTest is Test {
         moonDAOTeam = new MoonDAOTeam("erc5369", "ERC5643", TREASURY, address(hatsBase), address(teamDiscountList));
         moonDAOTeamCreator = new MoonDAOTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(moonDAOTeam), gnosisSafeAddress, address(proxyFactory), address(moonDAOTeamTable), address(teamWhitelist));
 
-    
+
         uint256 topHatId = hats.mintTopHat(user1, "", "");
         uint256 moonDAOTeamAdminHatId = hats.createHat(topHatId, "", 1, TREASURY, TREASURY, true, "");
 
@@ -65,11 +65,25 @@ contract MissionTest is Test {
         moonDAOTeamCreator.setMoonDaoTeamAdminHatId(moonDAOTeamAdminHatId);
         moonDAOTeam.setMoonDaoCreator(address(moonDAOTeamCreator));
         hats.mintHat(moonDAOTeamAdminHatId, address(moonDAOTeamCreator));
+        address jbControllerAddress = address(0xFd2B5dBc4251Eed629742B51292A05FFf5D8BDd8);
+        address jbMultiTerminalAddress = address(0x0BC7A37F6d6748af95030Ba36E877DcF0F7f7425);
 
-        missionCreator = new MissionCreator(zero, zero, address(moonDAOTeam), zero, user1);
+        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, address(moonDAOTeam), zero, user1);
         missionTable = new MissionTable("TestMissionTable", address(missionCreator));
         missionCreator.setMissionTable(address(missionTable));
 
+        vm.stopPrank();
+    }
+
+    function testCreateTeamProject() public {
+        vm.startPrank(user1);
+        moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
+        missionCreator.createMission(
+           0,
+           user1,
+           "",
+           "This is a test project"
+        );
         vm.stopPrank();
     }
 
@@ -98,18 +112,5 @@ contract MissionTest is Test {
         missionCreator.setMissionTable(address(missionTable));
     }
 
-    function testCreateTeamProject() public {
-        vm.startPrank(user1);
-        moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
-
-        missionCreator.createMission(
-           0,
-           user1,
-           "",
-           "This is a test project"
-        );
-        
-        vm.stopPrank();
-    }
 }
 
