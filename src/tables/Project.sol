@@ -166,6 +166,20 @@ contract Project is TablelandController, Ownable {
         );
     }
 
+    function deleteFromTable(uint256 id) external onlyOwner {
+        // Specify filters for which row to delete
+        string memory filters = string.concat(
+            "id=",
+            Strings.toString(id)
+        );
+        // Mutate a row at `id`
+        TablelandDeployments.get().mutate(
+            address(this),
+            _tableId,
+            SQLHelpers.toDelete(_TABLE_PREFIX, _tableId, filters)
+        );
+    }
+
     // Set the ACL controller to enable row-level writes with dynamic policies
     function setAccessControl(address controller) external onlyOwner{
         TablelandDeployments.get().setController(

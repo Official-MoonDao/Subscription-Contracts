@@ -131,7 +131,7 @@ contract MoonDaoCitizenTableland is ERC721Holder, Ownable {
         );
     }
 
-    // Delete a row from the table by ID 
+    // Delete a row from the table by ID
     function deleteFromTable(uint256 id) external {
         // Specify filters for which row to delete
         string memory filters = string.concat(
