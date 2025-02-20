@@ -16,7 +16,7 @@ contract MissionTable is ERC721Holder, Ownable {
     mapping(uint256 => uint256) public idToTeamId;
     address public missionCreator;
 
-    event MissionInserted(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId);
+    event MissionInserted(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, uint256 fundingGoal);
     event MissionUpdated(uint256 indexed id, uint256 indexed teamId);
     event MissionDeleted(uint256 indexed id, uint256 indexed teamId);
 
@@ -33,7 +33,8 @@ contract MissionTable is ERC721Holder, Ownable {
             SQLHelpers.toCreateFromSchema(
                 "id integer primary key,"
                 "projectId integer,"
-                "teamId integer",
+                "teamId integer,"
+                "fundingGoal integer",
                 _TABLE_PREFIX
             )
         );
@@ -79,13 +80,15 @@ contract MissionTable is ERC721Holder, Ownable {
         );
     }
 
-    function insertIntoTable(uint256 teamId, uint256 projectId) external onlyOperators returns (uint256) {
+    function insertIntoTable(uint256 teamId, uint256 projectId, uint256 fundingGoal) external onlyOperators returns (uint256) {
         string memory setters = string.concat(
                 Strings.toString(currId),
                 ",",
                 Strings.toString(projectId),
                 ",",
-                Strings.toString(teamId)
+                Strings.toString(teamId),
+                ",",
+                Strings.toString(fundingGoal)
         );
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
@@ -93,12 +96,12 @@ contract MissionTable is ERC721Holder, Ownable {
             SQLHelpers.toInsert(
                 _TABLE_PREFIX,
                 _tableId,
-                "id,projectId,teamId",
+                "id,projectId,teamId,fundingGoal",
                 setters
             )
         );
         idToTeamId[currId] = teamId;
-        emit MissionInserted(currId, teamId, projectId);
+        emit MissionInserted(currId, teamId, projectId, fundingGoal);
         currId += 1;
         return currId - 1;
     }

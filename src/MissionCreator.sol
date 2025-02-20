@@ -3,9 +3,12 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {MissionTable} from "./tables/MissionTable.sol";
 import {MoonDAOTeam} from "./ERC5643.sol";
 import {IJBController} from "@nana-core/interfaces/IJBController.sol";
+import {IJBProjects} from "@nana-core/interfaces/IJBProjects.sol";
+import {IJBToken} from "@nana-core/interfaces/IJBToken.sol";
 import {JBRulesetConfig} from "@nana-core/structs/JBRulesetConfig.sol";
 import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
 import {JBSplitGroup} from "@nana-core/structs/JBSplitGroup.sol";
@@ -18,17 +21,19 @@ import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import {IJBSplitHook} from "@nana-core/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
-contract MissionCreator is Ownable {
+contract MissionCreator is Ownable, IERC721Receiver {
     IJBController public jbController;
+    IJBProjects public jbProjects;
     address public jbMultiTerminalAddress;
     MoonDAOTeam public moonDAOTeam;
     MissionTable public missionTable;
     address public moonDAOTreasury;
 
-    event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId);
+    event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
-    constructor(address _jbController, address _jbMultiTerminal, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
+    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
         jbController = IJBController(_jbController);
+        jbProjects = IJBProjects(_jbProjects);
         jbMultiTerminalAddress = _jbMultiTerminal;
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
         missionTable = MissionTable(_missionTable);
@@ -37,6 +42,10 @@ contract MissionCreator is Ownable {
 
     function setJBController(address _jbController) external onlyOwner {
         jbController = IJBController(_jbController);
+    }
+
+    function setJBProjects(address _jbProjects) external onlyOwner {
+        jbProjects = IJBProjects(_jbProjects);
     }
 
     function setJBMultiTerminal(address _jbMultiTerminal) external onlyOwner {
@@ -55,9 +64,9 @@ contract MissionCreator is Ownable {
         missionTable = MissionTable(_missionTable);
     }
 
-    function createMission(uint256 teamId, address to, string calldata projectUri, string calldata memo) external returns (uint256) {
+    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
         if(msg.sender != owner()) {
-            require(moonDAOTeam.isManager(teamId, msg.sender), "Only manager of the team or owner of the contract can create a mission.");
+            require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
         }
 
         address payable toPayable = payable(to);
@@ -69,7 +78,7 @@ contract MissionCreator is Ownable {
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({
             mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
-            duration: 0, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
+            duration: duration, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
             weight: 1_000_000_000_000_000_000_000_000, // 1,000,000 tokens issued per unit of `baseCurrency` set below.
             weightCutPercent: 0, // 0% weight cut. If the `duration` property above is set to a non-zero value, the `weightCutPercent` property will be used to determine how much of the weight is cut from this ruleset to the next cycle.
             approvalHook: IJBRulesetApprovalHook(address(0)), // No approval hook contract is attached to this ruleset, meaning new rulesets can be queued at any time and will take effect as soon as possible given the current ruleset's `duration`.
@@ -180,18 +189,34 @@ contract MissionCreator is Ownable {
         });
 
         uint256 projectId = jbController.launchProjectFor(
-            to,
+            address(this),
             projectUri,
             rulesetConfigurations,
             terminalConfigurations,
             memo
         );
 
-        uint256 missionId = missionTable.insertIntoTable(teamId, projectId);
+        address tokenAddress = address(0);
+        if(token){
+            tokenAddress = address(jbController.deployERC20For(projectId, tokenName, tokenSymbol, 0));
+        }
+        
+        jbProjects.safeTransferFrom(address(this), to, projectId);
 
-        emit MissionCreated(missionId, teamId, projectId);
+        uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
+
+        emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 
         return missionId;
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }
 
