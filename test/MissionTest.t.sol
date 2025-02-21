@@ -65,10 +65,11 @@ contract MissionTest is Test {
         moonDAOTeamCreator.setMoonDaoTeamAdminHatId(moonDAOTeamAdminHatId);
         moonDAOTeam.setMoonDaoCreator(address(moonDAOTeamCreator));
         hats.mintHat(moonDAOTeamAdminHatId, address(moonDAOTeamCreator));
-        address jbControllerAddress = address(0xFd2B5dBc4251Eed629742B51292A05FFf5D8BDd8);
-        address jbMultiTerminalAddress = address(0x0BC7A37F6d6748af95030Ba36E877DcF0F7f7425);
+        address jbControllerAddress = address(0x5A4Fe87903882044bE1EdC75d5bC7d54CbC2D6F8);
+        address jbMultiTerminalAddress = address(0xDB9FbaDBa3Ee3FE332eCbC8811c74c91C4A529c2);
+        address jbProjectsAddress = address(0x4e44370Fbc23B7834F099b498058854469B67394);
 
-        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, address(moonDAOTeam), zero, user1);
+        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, jbProjectsAddress, address(moonDAOTeam), zero, user1);
         missionTable = new MissionTable("TestMissionTable", address(missionCreator));
         missionCreator.setMissionTable(address(missionTable));
 
@@ -82,6 +83,11 @@ contract MissionTest is Test {
            0,
            user1,
            "",
+           0,
+           0,
+           true,
+           "TEST TOKEN",
+           "TEST",
            "This is a test project"
         );
         vm.stopPrank();

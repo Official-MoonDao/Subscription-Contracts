@@ -9,15 +9,16 @@ contract MyScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address JB_CONTROLLER = 0xd1F037EFeBF187A59520bcCe9D1DAbE5CcfAb2c3;
-        address JB_MULTI_TERMINAL = 0x50fE7B6720901b74026aD714D9B393EDa7e39974;
+        address JB_CONTROLLER = 0xb291844F213047Eb9e1621AE555B1Eae6700d553;
+        address JB_MULTI_TERMINAL = 0xDB9644369c79C3633cDE70D2Df50d827D7dC7Dbc;
+        address JB_PROJECTS = 0x0b538A02610d7d3Cc91Ce2870F423e0a34D646AD;
         address MOON_DAO_TEAM = 0x21d2C4bEBd1AEb830277F8548Ae30F505551f961;
-        address MISSION_PROJECTS_TABLE = 0x0000000000000000000000000000000000000000;
+        address MISSION_TABLE = 0x0000000000000000000000000000000000000000;
         address MOON_DAO_TREASURY = 0x0724d0eb7b6d32AEDE6F9e492a5B1436b537262b;
 
         MissionTable missionTable = new MissionTable("MissionTable", address(0));
 
-        MissionCreator missionCreator = new MissionCreator(JB_CONTROLLER, JB_MULTI_TERMINAL, MOON_DAO_TEAM, MISSION_PROJECTS_TABLE, MOON_DAO_TREASURY);
+        MissionCreator missionCreator = new MissionCreator(JB_CONTROLLER, JB_MULTI_TERMINAL, JB_PROJECTS, MOON_DAO_TEAM, MISSION_TABLE, MOON_DAO_TREASURY);
 
         missionTable.setMissionCreator(address(missionCreator));
         missionCreator.setMissionTable(address(missionTable));
