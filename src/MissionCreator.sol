@@ -213,6 +213,13 @@ contract MissionCreator is Ownable, IERC721Receiver {
         address tokenAddress = address(0);
         if(token){
             tokenAddress = address(jbController.deployERC20For(projectId, tokenName, tokenSymbol, 0));
+            JBAccountingContext[] memory accountingContexts = new JBAccountingContext[](1);
+            accountingContexts[0] = JBAccountingContext({
+                token: tokenAddress,
+                decimals: 18,
+                currency: 61166
+            });
+            terminal.addAccountingContextsFor(projectId, accountingContexts);
         }
 
         uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
