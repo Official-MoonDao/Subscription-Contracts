@@ -33,6 +33,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
     address public moonDAOTreasury;
 
     mapping(uint256 => uint256) public missionsToProjects;
+    mapping(uint256 => uint256) public projectsToMissions;
     mapping(uint256 => address) public missionRecipients;
     mapping(uint256 => uint256) public missionDurations;
     mapping(uint256 => uint256) public missionFundingGoals;
@@ -217,6 +218,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
 
         missionsToProjects[missionId] = projectId;
+        projectsToMissions[projectId] = missionId;
         missionRecipients[missionId] = to;
         missionDurations[missionId] = duration;
         missionFundingGoals[missionId] = fundingGoal;
@@ -226,7 +228,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
         return missionId;
     }
     
-    function closeMission(uint256 missionId) external {
+    function closeMission(uint256 projectId) external {
+        uint256 missionId = projectsToMissions[projectId];
         if(msg.sender != owner() && msg.sender != missionPayHookAddress) {
             require(moonDAOTeam.isManager(missionsToTeams[missionId], msg.sender), "Only a manager of the team, mission pay hook, or owner can close a mission.");
         }
