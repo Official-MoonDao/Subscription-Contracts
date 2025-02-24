@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+/// WIP : still needs to be tested
+
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -25,19 +27,26 @@ contract MissionCreator is Ownable, IERC721Receiver {
     IJBController public jbController;
     IJBProjects public jbProjects;
     address public jbMultiTerminalAddress;
+    address public missionPayHookAddress;
     MoonDAOTeam public moonDAOTeam;
     MissionTable public missionTable;
     address public moonDAOTreasury;
 
+    mapping(uint256 => uint256) public missionsToProjects;
+    mapping(uint256 => address) public missionRecipients;
+    mapping(uint256 => uint256) public missionDurations;
+    mapping(uint256 => uint256) public missionFundingGoals;
+
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
-    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
+    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _moonDAOTeam, address _missionPayHook, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
         jbController = IJBController(_jbController);
         jbProjects = IJBProjects(_jbProjects);
         jbMultiTerminalAddress = _jbMultiTerminal;
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
         missionTable = MissionTable(_missionTable);
         moonDAOTreasury = payable(_moonDAOTreasury);
+        missionPayHookAddress = _missionPayHook;
     }
 
     function setJBController(address _jbController) external onlyOwner {
@@ -64,7 +73,11 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionTable = MissionTable(_missionTable);
     }
 
-    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+    function setMissionPayHook(address _missionPayHook) external onlyOwner {
+        missionPayHookAddress = _missionPayHook;
+    }
+
+    function launchMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
         if(msg.sender != owner()) {
             require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
         }
@@ -98,7 +111,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 ownerMustSendPayouts: false, // Anyone can send this project's payouts to the splits specified in the `splitGroups` property below.
                 holdFees: false, // Fees are not held.
                 useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
-                useDataHookForPay: false, // The project does not use a data hook for payouts.
+                useDataHookForPay: IJBPayHook(address(0)), // The project does not use a data hook for payouts.
                 useDataHookForCashOut: false, // The project does not use a data hook for cashouts.
                 dataHook: address(0), // No data hook contract is attached to this ruleset.
                 metadata: 0 // No metadata is attached to this ruleset.
@@ -200,14 +213,51 @@ contract MissionCreator is Ownable, IERC721Receiver {
         if(token){
             tokenAddress = address(jbController.deployERC20For(projectId, tokenName, tokenSymbol, 0));
         }
-        
-        jbProjects.safeTransferFrom(address(this), to, projectId);
 
         uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
+
+        missionsToProjects[missionId] = projectId;
+        missionRecipients[missionId] = to;
+        missionDurations[missionId] = duration;
+        missionFundingGoals[missionId] = fundingGoal;
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 
         return missionId;
+    }
+    
+    function closeMission(uint256 missionId) external {
+        if(msg.sender != owner() && msg.sender != missionPayHookAddress) {
+            require(moonDAOTeam.isManager(missionsToTeams[missionId], msg.sender), "Only a manager of the team, mission pay hook, or owner can close a mission.");
+        }
+
+        if(msg.sender != missionPayHookAddress) {
+            require(block.timestamp >= missionDurations[missionId] + 1 days, "The mission funding goal has not been met and the mission is not yet closed.");
+        }
+
+        JBRulesetConfig[] memory rulesetConfigs = new JBRulesetConfig[](1);
+        // Configure the ruleset to close out the project
+        rulesetConfigs[0] = JBRulesetConfig({
+            mustStartAtOrAfter: block.timestamp,
+            duration: 0,
+        });
+
+        //Empty terminal configs
+        JBTerminalConfig[] memory terminalConfigs = new JBTerminalConfig[](0);
+
+        jbController.launchRulesetsFor(
+            projectId,
+            rulesetConfigs,
+            terminalConfigs,
+            "Mission completed"
+        );
+
+        jbProjects.safeTransferFrom(address(this), projectRecipients[projectId], projectId);
+
+        missionDurations[missionId] = 0;
+        missionFundingGoals[missionId] = 0;
+
+        emit MissionClosed(missionId);
     }
 
     function onERC721Received(
