@@ -65,6 +65,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
     }
 
     function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+
         if(msg.sender != owner()) {
             require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
         }
