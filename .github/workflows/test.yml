@@ -39,6 +39,7 @@ jobs:
         run: |
           git clone https://github.com/Bananapus/nana-core
           cd nana-core
+          git checkout 2998dca2fbd2658e2c8791d6dc8348147d69e28e
         id: clone-juicebox
 
       - name: Install JuiceBox dependencies
