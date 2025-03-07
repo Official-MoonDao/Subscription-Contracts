@@ -68,8 +68,10 @@ contract MissionTest is Test {
         address jbControllerAddress = address(0xFd2B5dBc4251Eed629742B51292A05FFf5D8BDd8);
         address jbMultiTerminalAddress = address(0x0BC7A37F6d6748af95030Ba36E877DcF0F7f7425);
         address jbProjectsAddress = address(0x39a7dDa0F1b3bee0c9470eeFB4A18BE27092Ec30);
+        address jbDirectoryAddress = address(0xEaF625c6ff600D34C557B2d9492d48678F3CCa3D);
+        address jbTerminalStoreAddress = address(0x74EC07145ee332391cd7241d5F312A3586388064);
 
-        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, jbProjectsAddress, address(moonDAOTeam), zero, user1);
+        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, jbProjectsAddress, jbDirectoryAddress, jbTerminalStoreAddress, address(moonDAOTeam), zero, user1);
         missionTable = new MissionTable("TestMissionTable", address(missionCreator));
         missionCreator.setMissionTable(address(missionTable));
 
@@ -84,7 +86,9 @@ contract MissionTest is Test {
            user1,
            "",
            0,
-           0,
+           block.timestamp + 1 days,
+           1_000_000_000_000_000_000_000_000,
+           2_000_000_000_000_000_000_000_000,
            true,
            "TEST TOKEN",
            "TEST",

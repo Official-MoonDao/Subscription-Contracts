@@ -29,7 +29,7 @@ anvil
 # Deploy juicebox to local chain (requires npm >= 20.0.0)
 git clone https://github.com/Bananapus/nana-core
 cd nana-core
-npm ci && forge install
+npm ci --also-dev && forge install
 awk '/^\[rpc_endpoints\]$/ {print; print "local = \"http://127.0.0.1:8545\""; next} 1' foundry.toml > temp && mv temp foundry.toml # add local chain to foundry.toml
 PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" npx sphinx deploy script/Deploy.s.sol --network local --confirm # private key is the default anvil key, not a secret
 

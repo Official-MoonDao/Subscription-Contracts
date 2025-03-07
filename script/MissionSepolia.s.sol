@@ -18,10 +18,10 @@ contract MyScript is Script {
 
         MissionTable missionTable = new MissionTable("MissionTable", address(0));
 
-        MissionCreator missionCreator = new MissionCreator(JB_CONTROLLER, JB_MULTI_TERMINAL, JB_PROJECTS, MOON_DAO_TEAM, MISSION_TABLE, MOON_DAO_TREASURY);
+        //MissionCreator missionCreator = new MissionCreator(JB_CONTROLLER, JB_MULTI_TERMINAL, JB_PROJECTS, MOON_DAO_TEAM, MISSION_TABLE, MOON_DAO_TREASURY);
 
-        missionTable.setMissionCreator(address(missionCreator));
-        missionCreator.setMissionTable(address(missionTable));
+        //missionTable.setMissionCreator(address(missionCreator));
+        //missionCreator.setMissionTable(address(missionTable));
 
         vm.stopBroadcast();
     }
