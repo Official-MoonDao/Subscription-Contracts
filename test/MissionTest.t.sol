@@ -3,6 +3,9 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
+import {JBRuleset} from "@nana-core/structs/JBRuleset.sol";
+import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
+import {IJBDirectory} from "@nana-core/interfaces/IJBDirectory.sol";
 import {MoonDAOTeam} from "../src/ERC5643.sol";
 import {GnosisSafeProxyFactory} from "../src/GnosisSafeProxyFactory.sol";
 import {MissionCreator} from "../src/MissionCreator.sol";
@@ -16,6 +19,9 @@ import {Hats} from "@hats/Hats.sol";
 import {HatsModuleFactory} from "@hats-module/HatsModuleFactory.sol";
 import {deployModuleFactory} from "@hats-module/utils/DeployFunctions.sol";
 import {Whitelist} from "../src/Whitelist.sol";
+import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
+import { JBConstants } from "@nana-core/libraries/JBConstants.sol";
+import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 
 contract MissionTest is Test {
 
@@ -34,6 +40,7 @@ contract MissionTest is Test {
 
     MissionCreator missionCreator;
     MissionTable missionTable;
+    IJBDirectory jbDirectory;
 
     function setUp() public {
         vm.deal(user1, 10 ether);
@@ -55,6 +62,7 @@ contract MissionTest is Test {
         moonDAOTeamTable = new MoonDaoTeamTableland("MoonDaoTeamTable");
         moonDAOTeam = new MoonDAOTeam("erc5369", "ERC5643", TREASURY, address(hatsBase), address(teamDiscountList));
         moonDAOTeamCreator = new MoonDAOTeamCreator(address(hatsBase), address(hatsFactory), address(passthrough), address(moonDAOTeam), gnosisSafeAddress, address(proxyFactory), address(moonDAOTeamTable), address(teamWhitelist));
+        jbDirectory = IJBDirectory(0xEaF625c6ff600D34C557B2d9492d48678F3CCa3D);
 
 
         uint256 topHatId = hats.mintTopHat(user1, "", "");
@@ -81,7 +89,7 @@ contract MissionTest is Test {
     function testCreateTeamProject() public {
         vm.startPrank(user1);
         moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
-        missionCreator.createMission(
+        uint256 missionId = missionCreator.createMission(
            0,
            user1,
            "",
@@ -94,6 +102,28 @@ contract MissionTest is Test {
            "TEST",
            "This is a test project"
         );
+        uint256 projectId = missionCreator.missionIdToProjectId(missionId);
+        IJBController jbController = IJBController(address(jbDirectory.controllerOf(projectId)));
+        //function currentRulesetOf(uint256 projectId)
+    //external
+    //view
+    //returns (JBRuleset memory ruleset, JBRulesetMetadata memory metadata);
+        JBRuleset memory ruleset;
+        JBRulesetMetadata memory metadata;
+        (ruleset, metadata) = jbController.currentRulesetOf(projectId);
+        assertEq(ruleset.cycleNumber, 1);
+        IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
+        terminal.pay(
+            projectId,
+            JBConstants.NATIVE_TOKEN,
+            1_000_000_000_000_000_000,
+            user1,
+            0,
+            "",
+            new bytes(0)
+        );
+        (ruleset, metadata) = jbController.currentRulesetOf(projectId);
+        assertEq(ruleset.cycleNumber, 2);
         vm.stopPrank();
     }
 
