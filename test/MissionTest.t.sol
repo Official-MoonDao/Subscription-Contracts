@@ -321,6 +321,30 @@ contract MissionTest is Test {
             new bytes(0)
         );
     }
+    function testSetJBController() public {
+        vm.prank(user1);
+        missionCreator.setJBController(address(0));
+    }
+
+    function testSetJBMultiTerminal() public {
+        vm.prank(user1);
+        missionCreator.setJBMultiTerminal(address(0));
+    }
+
+    function testSetMoonDAOTreasury() public {
+        vm.prank(user1);
+        missionCreator.setMoonDAOTreasury(address(0));
+    }
+
+    function testSetMoonDAOTeam() public {
+        vm.prank(user1);
+        missionCreator.setMoonDAOTeam(address(moonDAOTeam));
+    }
+
+    function testSetMissionTable() public {
+        vm.prank(user1);
+        missionCreator.setMissionTable(address(missionTable));
+    }
 
 }
 

@@ -46,7 +46,6 @@ contract ProjectTeamCreator is Ownable {
         projectTeamAdminHatId = _projectTeamAdminHatId;
     }
 
-
     function createProjectTeam(string memory adminHatURI, string memory managerHatURI, string memory memberHatURI, string calldata name, string calldata description, string calldata image, uint256 quarter, uint256 year, uint256 MDP, string calldata proposalIPFS, string calldata proposalLink, string calldata upfrontPayments, address lead, address[] memory members, address[] memory signers) external onlyOwner() returns (uint256 tokenId, uint256 childHatId) {
         bytes memory safeCallData = constructSafeCallData(signers);
         GnosisSafeProxy gnosisSafe = gnosisSafeProxyFactory.createProxy(gnosisSingleton, safeCallData);
