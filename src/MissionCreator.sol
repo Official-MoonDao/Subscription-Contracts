@@ -79,7 +79,38 @@ contract MissionCreator is Ownable, IERC721Receiver {
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
 
         //TODO: Configure ruleset
+        LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
+        rulesetConfigurations[0] = JBRulesetConfig({
+            mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
+            duration: duration, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
+            weight: 2_000_000_000_000_000_000_000, // 1,000,000 tokens issued per unit of `baseCurrency` set below.
+            weightCutPercent: 0, // 0% weight cut. If the `duration` property above is set to a non-zero value, the `weightCutPercent` property will be used to determine how much of the weight is cut from this ruleset to the next cycle.
+            approvalHook: IJBRulesetApprovalHook(address(0)), // No approval hook contract is attached to this ruleset, meaning new rulesets can be queued at any time and will take effect as soon as possible given the current ruleset's `duration`.
+            metadata: JBRulesetMetadata({
+                reservedPercent: 5_000, // 50% of tokens are reserved, to be split according to the `splitGroups` property below.
+                cashOutTaxRate: 0, // 0% tax on cashouts.
+                baseCurrency: 61166, // ETH currency. Together with the `weight` property, this determines how many tokens are issued per ETH received. If the project receives a different token, say USDC, a price feed will determine the ETH value of the USDC at the time of the transaction in order to determine how many tokens are issued per USDC received.
+                pausePay: false, // Payouts are not paused.
+                pauseCreditTransfers: false, // Credit transfers are not paused.
+                allowOwnerMinting: false, // The project owner cannot mint new tokens.
+                allowSetCustomToken: false, // The project cannot set a custom token.
+                allowTerminalMigration: false, // The project cannot move funds between terminals.
+                allowSetTerminals: false, // The project cannot set new terminals.
+                allowSetController: false, // The project cannot set a new controller.
+                allowAddAccountingContext: false, // The project cannot add new accounting contexts to its terminals.
+                allowAddPriceFeed: false, // The project cannot add new price feeds.
+                ownerMustSendPayouts: false, // Anyone can send this project's payouts to the splits specified in the `splitGroups` property below.
+                holdFees: false, // Fees are not held.
+                useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
+                useDataHookForPay: true, // The project does not use a data hook for payouts.
+                useDataHookForCashOut: false, // The project does not use a data hook for cashouts.
+                dataHook: address(launchPadPayHook), // No data hook contract is attached to this ruleset.
+                metadata: 0 // No metadata is attached to this ruleset.
+            }),
+            splitGroups: splitGroups, // Initialize as dynamic array
+            fundAccessLimitGroups: fundAccessLimitGroups // Initialize as dynamic array
+        });
         JBSplitGroup[] memory splitGroups = new JBSplitGroup[](2);
         //TODO: Configure split groups
         splitGroups[0] = JBSplitGroup({
@@ -161,39 +192,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
             amount: 700_000_000_000_000_000_000, // 700 USD worth of ETH can be used by the project owner discretionarily from the project's surplus.
             currency: 1 // USD
         });
-        LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
 
-        JBRulesetMetadata memory metadata = JBRulesetMetadata({
-            reservedPercent: 5_000, // 50% of tokens are reserved, to be split according to the `splitGroups` property below.
-            cashOutTaxRate: 0, // 0% tax on cashouts.
-            baseCurrency: 61166, // ETH currency. Together with the `weight` property, this determines how many tokens are issued per ETH received. If the project receives a different token, say USDC, a price feed will determine the ETH value of the USDC at the time of the transaction in order to determine how many tokens are issued per USDC received.
-            pausePay: false, // Payouts are not paused.
-            pauseCreditTransfers: false, // Credit transfers are not paused.
-            allowOwnerMinting: false, // The project owner cannot mint new tokens.
-            allowSetCustomToken: false, // The project cannot set a custom token.
-            allowTerminalMigration: false, // The project cannot move funds between terminals.
-            allowSetTerminals: false, // The project cannot set new terminals.
-            allowSetController: false, // The project cannot set a new controller.
-            allowAddAccountingContext: false, // The project cannot add new accounting contexts to its terminals.
-            allowAddPriceFeed: false, // The project cannot add new price feeds.
-            ownerMustSendPayouts: false, // Anyone can send this project's payouts to the splits specified in the `splitGroups` property below.
-            holdFees: false, // Fees are not held.
-            useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
-            useDataHookForPay: true, // The project does not use a data hook for payouts.
-            useDataHookForCashOut: false, // The project does not use a data hook for cashouts.
-            dataHook: address(launchPadPayHook), // No data hook contract is attached to this ruleset.
-            metadata: 0 // No metadata is attached to this ruleset.
-        });
-        rulesetConfigurations[0] = JBRulesetConfig({
-            mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
-            duration: duration, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
-            weight: 2_000_000_000_000_000_000_000, // 1,000,000 tokens issued per unit of `baseCurrency` set below.
-            weightCutPercent: 0, // 0% weight cut. If the `duration` property above is set to a non-zero value, the `weightCutPercent` property will be used to determine how much of the weight is cut from this ruleset to the next cycle.
-            approvalHook: IJBRulesetApprovalHook(address(0)), // No approval hook contract is attached to this ruleset, meaning new rulesets can be queued at any time and will take effect as soon as possible given the current ruleset's `duration`.
-            metadata: metadata,
-            splitGroups: splitGroups, // Initialize as dynamic array
-            fundAccessLimitGroups: fundAccessLimitGroups // Initialize as dynamic array
-        });
+        JBRulesetMetadata memory metadata = ;
 
 
         //TODO: Add terminal configurations

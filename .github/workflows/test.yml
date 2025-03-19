@@ -39,7 +39,6 @@ jobs:
         run: |
           git clone https://github.com/Bananapus/nana-core
           cd nana-core
-          git checkout 2998dca2fbd2658e2c8791d6dc8348147d69e28e
         id: clone-juicebox
 
       - name: Install JuiceBox dependencies
@@ -51,8 +50,8 @@ jobs:
       - name: Run JuiceBox Deployment Script
         run: |
           cd nana-core
-          awk '/^\[rpc_endpoints\]$/ {print; print "anvil = \"http://127.0.0.1:8545\""; next} 1' foundry.toml > temp && mv temp foundry.toml # add local chain to foundry.toml
-          PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" npx sphinx deploy script/Deploy.s.sol --network anvil --confirm # private key is the default anvil key, not a secret
+          awk '/^\[rpc_endpoints\]$/ {print; print "local = \"http://127.0.0.1:8545\""; next} 1' foundry.toml > temp && mv temp foundry.toml # add local chain to foundry.toml
+          PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" npx sphinx deploy script/Deploy.s.sol --network local --confirm # private key is the default anvil key, not a secret
         id: deploy-juicebox
 
       - name: Clone EVM Tableland Repository
