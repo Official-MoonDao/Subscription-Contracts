@@ -111,7 +111,6 @@ contract MissionCreator is Ownable, IERC721Receiver {
             splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
             fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
-        JBSplitGroup[] memory splitGroups = new JBSplitGroup[](2);
         //TODO: Configure split groups
         rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
@@ -158,7 +157,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // amm token split
-        splitGroups[1].splits[2] = JBSplit({
+        rulesetConfigurations[0].splitGroups[1].splits[2] = JBSplit({
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
