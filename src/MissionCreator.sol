@@ -108,17 +108,17 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 dataHook: address(launchPadPayHook), // No data hook contract is attached to this ruleset.
                 metadata: 0 // No metadata is attached to this ruleset.
             }),
-            splitGroups: splitGroups, // Initialize as dynamic array
-            fundAccessLimitGroups: fundAccessLimitGroups // Initialize as dynamic array
+            splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
+            fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
         JBSplitGroup[] memory splitGroups = new JBSplitGroup[](2);
         //TODO: Configure split groups
-        splitGroups[0] = JBSplitGroup({
+        rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
             splits: new JBSplit[](2) // Initialize as dynamic array
         });
-        splitGroups[0].splits[0] = JBSplit({
+        rulesetConfigurations[0].splitGroups[0].splits[0] = JBSplit({
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
@@ -126,7 +126,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        splitGroups[0].splits[1] = JBSplit({
+        rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
             percent: 900_000_000, // 90%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
@@ -134,13 +134,13 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        splitGroups[1] = JBSplitGroup({
+        rulesetConfigurations[0].splitGroups[1] = JBSplitGroup({
             groupId: 1, // This is the group ID of splits for reserved token distribution.
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
             splits: new JBSplit[](3) // Initialize as dynamic array
         });
         // moondao token split
-        splitGroups[1].splits[0] = JBSplit({
+        rulesetConfigurations[0].splitGroups[1].splits[0] = JBSplit({
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
@@ -149,7 +149,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // project token split
-        splitGroups[1].splits[1] = JBSplit({
+        rulesetConfigurations[0].splitGroups[1].splits[1] = JBSplit({
             percent: 300_000_000, // 30%, out of 1_000_000_000
             projectId: 420, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
@@ -170,7 +170,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         JBFundAccessLimitGroup[] memory fundAccessLimitGroups = new JBFundAccessLimitGroup[](1);
 
         //TODO: Add fund access limit groups
-        fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
+        rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
             terminal: jbMultiTerminalAddress, // The terminal to create access limit rules for. Use the address directly.
             token: address(0xEEEe), // Ensure this is a valid token address
             payoutLimits: new JBCurrencyAmount[](2), // Initialize as dynamic array
@@ -178,23 +178,20 @@ contract MissionCreator is Ownable, IERC721Receiver {
         });
 
         //TODO: Add payout limits
-        fundAccessLimitGroups[0].payoutLimits[0] = JBCurrencyAmount({
+        rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[0] = JBCurrencyAmount({
             amount: 6_900_000_000_000_000_000, // 6.9 USD worth of ETH can be paid out.
             currency: 1 // USD
         });
-        fundAccessLimitGroups[0].payoutLimits[1] = JBCurrencyAmount({
+        rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[1] = JBCurrencyAmount({
             amount: 4_200_000_000_000_000_000, // 4.2 ETH can be paid out.
             currency: 61166 // ETH
         });
 
         //TODO: Add surplus allowances
-        fundAccessLimitGroups[0].surplusAllowances[0] = JBCurrencyAmount({
+        rulesetConfigurations[0].fundAccessLimitGroups[0].surplusAllowances[0] = JBCurrencyAmount({
             amount: 700_000_000_000_000_000_000, // 700 USD worth of ETH can be used by the project owner discretionarily from the project's surplus.
             currency: 1 // USD
         });
-
-        JBRulesetMetadata memory metadata = ;
-
 
         //TODO: Add terminal configurations
         JBTerminalConfig[] memory terminalConfigurations = new JBTerminalConfig[](1);
