@@ -69,31 +69,33 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
 
         weight = 0;
         uint256 remainingPayment = paymentAmount;
-        uint256 tempFunding = currentFunding;
 
         // In the case where a payment will bring a project over minFundingRequired or fundingGoal
         // we need to calculate the weighted average of the rates.
 
         // Tier 1: Payments that bring total funding up to minFundingRequired.
-        if (tempFunding < minFundingRequired) {
+        if (currentFunding < minFundingRequired) {
             if (block.timestamp >= deadline) {
                 revert("Project funding deadline has passed and minimum funding requirement has not been met.");
             }
-            uint256 availableTier1 = minFundingRequired - tempFunding;
-            // Payment applied in Tier 1 is the lesser of the available capacity and the full payment.
-            uint256 paymentTier1 = remainingPayment < availableTier1 ? remainingPayment : availableTier1;
+            uint256 paymentTier1 = remainingPayment;
+            if (currentFunding + paymentTier1 > minFundingRequired) {
+                paymentTier1 = minFundingRequired - currentFunding;
+            }
             weight += (paymentTier1 * rateTier1) / paymentAmount;
             remainingPayment -= paymentTier1;
-            tempFunding += paymentTier1;
+            currentFunding += paymentTier1;
         }
 
         // Tier 2: Payments that fill funding from minFundingRequired up to fundingGoal.
-        if (remainingPayment > 0 && tempFunding < fundingGoal) {
-            uint256 availableTier2 = fundingGoal - tempFunding;
-            uint256 paymentTier2 = remainingPayment < availableTier2 ? remainingPayment : availableTier2;
+        if (remainingPayment > 0 && currentFunding < fundingGoal) {
+            uint256 paymentTier2 = remainingPayment;
+            if (currentFunding + paymentTier2 > fundingGoal) {
+                paymentTier2 = fundingGoal - currentFunding;
+            }
             weight += (paymentTier2 * rateTier2) / paymentAmount;
             remainingPayment -= paymentTier2;
-            tempFunding += paymentTier2;
+            currentFunding += paymentTier2;
         }
 
         // Tier 3: Payments beyond the fundingGoal.

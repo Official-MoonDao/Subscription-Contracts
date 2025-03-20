@@ -103,8 +103,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 ownerMustSendPayouts: false, // Anyone can send this project's payouts to the splits specified in the `splitGroups` property below.
                 holdFees: false, // Fees are not held.
                 useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
-                useDataHookForPay: true, // The project does not use a data hook for payouts.
-                useDataHookForCashOut: false, // The project does not use a data hook for cashouts.
+                useDataHookForPay: true,
+                useDataHookForCashOut: false,
                 dataHook: address(launchPadPayHook), // No data hook contract is attached to this ruleset.
                 metadata: 0 // No metadata is attached to this ruleset.
             }),
@@ -122,7 +122,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // MoonDAO treasury
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
@@ -130,7 +130,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: toPayable, // Team multisig
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[1] = JBSplitGroup({
@@ -144,7 +144,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split.
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // project token split
@@ -153,7 +153,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 420, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
             beneficiary: toPayable, // The beneficiary of the payment made to the project's primary terminal. This is the address that will receive the project's tokens issued from the payment.
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // amm token split
@@ -162,7 +162,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split.
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
 
