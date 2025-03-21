@@ -8,8 +8,8 @@ import {MissionTable} from "./tables/MissionTable.sol";
 import {MoonDAOTeam} from "./ERC5643.sol";
 import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 import {IJBProjects} from "@nana-core/interfaces/IJBProjects.sol";
-import {IJBToken} from "@nana-core/interfaces/IJBToken.sol";
 import {JBRulesetConfig} from "@nana-core/structs/JBRulesetConfig.sol";
+import {LaunchPadPayHook} from "./LaunchPadPayHook.sol";
 import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
 import {JBSplitGroup} from "@nana-core/structs/JBSplitGroup.sol";
 import {JBSplit} from "@nana-core/structs/JBSplit.sol";
@@ -25,16 +25,20 @@ contract MissionCreator is Ownable, IERC721Receiver {
     IJBController public jbController;
     IJBProjects public jbProjects;
     address public jbMultiTerminalAddress;
+    address public jbTerminalStoreAddress;
     MoonDAOTeam public moonDAOTeam;
     MissionTable public missionTable;
     address public moonDAOTreasury;
+    mapping(uint256 => uint256) public missionIdToProjectId;
+    mapping(uint256 => address) public missionIdToPayHook;
 
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
-    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
+    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _jbTerminalStore, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
         jbController = IJBController(_jbController);
         jbProjects = IJBProjects(_jbProjects);
         jbMultiTerminalAddress = _jbMultiTerminal;
+        jbTerminalStoreAddress = _jbTerminalStore;
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
         missionTable = MissionTable(_missionTable);
         moonDAOTreasury = payable(_moonDAOTreasury);
@@ -54,7 +58,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
 
     function setMoonDAOTreasury(address _moonDAOTreasury) external onlyOwner {
         moonDAOTreasury = _moonDAOTreasury;
-    }   
+    }
 
     function setMoonDAOTeam(address _moonDAOTeam) external onlyOwner {
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
@@ -64,22 +68,23 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionTable = MissionTable(_missionTable);
     }
 
-    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 deadline, uint256 minFundingRequired, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+
         if(msg.sender != owner()) {
             require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
         }
 
         address payable toPayable = payable(to);
         address payable moonDAOTreasuryPayable = payable(moonDAOTreasury);
-
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
 
         //TODO: Configure ruleset
+        LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({
             mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
             duration: duration, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
-            weight: 1_000_000_000_000_000_000_000_000, // 1,000,000 tokens issued per unit of `baseCurrency` set below.
+            weight: 2_000_000_000_000_000_000_000, // Standard rate is 2,000 tokens issued per unit of `baseCurrency` set below, 1,000 going to the funder and 1,000 going to the project. Note that this will be modified by the payhook based on current amount of funds raised, min funding required, and funding goal.
             weightCutPercent: 0, // 0% weight cut. If the `duration` property above is set to a non-zero value, the `weightCutPercent` property will be used to determine how much of the weight is cut from this ruleset to the next cycle.
             approvalHook: IJBRulesetApprovalHook(address(0)), // No approval hook contract is attached to this ruleset, meaning new rulesets can be queued at any time and will take effect as soon as possible given the current ruleset's `duration`.
             metadata: JBRulesetMetadata({
@@ -98,15 +103,14 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 ownerMustSendPayouts: false, // Anyone can send this project's payouts to the splits specified in the `splitGroups` property below.
                 holdFees: false, // Fees are not held.
                 useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
-                useDataHookForPay: false, // The project does not use a data hook for payouts.
-                useDataHookForCashOut: false, // The project does not use a data hook for cashouts.
-                dataHook: address(0), // No data hook contract is attached to this ruleset.
+                useDataHookForPay: true,
+                useDataHookForCashOut: false,
+                dataHook: address(launchPadPayHook), // No data hook contract is attached to this ruleset.
                 metadata: 0 // No metadata is attached to this ruleset.
             }),
             splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
             fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
-
         //TODO: Configure split groups
         rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
@@ -118,7 +122,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // MoonDAO treasury
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
@@ -126,30 +130,43 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: toPayable, // Team multisig
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[1] = JBSplitGroup({
-            groupId: 1, // This is the group ID of splits for reserved token distribution. 
+            groupId: 1, // This is the group ID of splits for reserved token distribution.
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
-            splits: new JBSplit[](2) // Initialize as dynamic array
+            splits: new JBSplit[](3) // Initialize as dynamic array
         });
+        // moondao token split
         rulesetConfigurations[0].splitGroups[1].splits[0] = JBSplit({
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split.
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
+        // project token split
         rulesetConfigurations[0].splitGroups[1].splits[1] = JBSplit({
             percent: 300_000_000, // 30%, out of 1_000_000_000
             projectId: 420, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
             beneficiary: toPayable, // The beneficiary of the payment made to the project's primary terminal. This is the address that will receive the project's tokens issued from the payment.
-            lockedUntil: 0, // The split is not locked, meaning the project owner can remove it or change it at any time.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
+        // amm token split
+        rulesetConfigurations[0].splitGroups[1].splits[2] = JBSplit({
+            percent: 100_000_000, // 10%, out of 1_000_000_000
+            projectId: 0, // Not used.
+            preferAddToBalance: false, // Not used, since projectId is 0.
+            beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split.
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
+            hook: IJBSplitHook(address(0)) // Not used.
+        });
+
+        JBFundAccessLimitGroup[] memory fundAccessLimitGroups = new JBFundAccessLimitGroup[](1);
 
         //TODO: Add fund access limit groups
         rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
@@ -162,7 +179,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         //TODO: Add payout limits
         rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[0] = JBCurrencyAmount({
             amount: 6_900_000_000_000_000_000, // 6.9 USD worth of ETH can be paid out.
-            currency: 1 // USD 
+            currency: 1 // USD
         });
         rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[1] = JBCurrencyAmount({
             amount: 4_200_000_000_000_000_000, // 4.2 ETH can be paid out.
@@ -200,10 +217,12 @@ contract MissionCreator is Ownable, IERC721Receiver {
         if(token){
             tokenAddress = address(jbController.deployERC20For(projectId, tokenName, tokenSymbol, 0));
         }
-        
+
         jbProjects.safeTransferFrom(address(this), to, projectId);
 
         uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
+        missionIdToProjectId[missionId] = projectId;
+        missionIdToPayHook[missionId] = address(launchPadPayHook);
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 
