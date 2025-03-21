@@ -3,7 +3,6 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {JBRuleset} from "@nana-core/structs/JBRuleset.sol";
 import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
 import {JBApprovalStatus} from "@nana-core/enums/JBApprovalStatus.sol";
