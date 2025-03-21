@@ -111,6 +111,16 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
         uint256 totalSupply,
         JBCashOutHookSpecification[] memory hookSpecifications
     ){
+        uint256 currentFunding = _totalFunding(context.terminal, context.projectId);
+        if (currentFunding >= minFundingRequired){
+            revert("Project has passed minimum funding requirement. Refunds are disabled.");
+        }
+        if (block.timestamp < deadline) {
+            revert("Project funding deadline has not passed. Refunds are disabled.");
+        }
+        // Contributors only recieve 50% of minted tokens. In order to get the correct refund amount,
+        // we need to double the cashOutCount.
+        cashOutCount = context.cashOutCount * 2;
     }
 
     function hasMintPermissionFor(uint256 projectId, address addr) external view override returns (bool flag){
