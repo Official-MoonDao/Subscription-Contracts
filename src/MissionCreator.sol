@@ -127,9 +127,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
-            // FIXME undo
             percent: 900_000_000, // 90%, out of 1_000_000_000
-            //percent: 0, // 90%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: toPayable, // Team multisig
@@ -168,33 +166,6 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-
-        JBFundAccessLimitGroup[] memory fundAccessLimitGroups = new JBFundAccessLimitGroup[](0);
-
-        //TODO: Add fund access limit groups
-        //rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
-            //terminal: jbMultiTerminalAddress, // The terminal to create access limit rules for. Use the address directly.
-            //token: address(0xEEEe), // Ensure this is a valid token address
-            //payoutLimits: new JBCurrencyAmount[](2), // Initialize as dynamic array
-            //surplusAllowances: new JBCurrencyAmount[](1) // Initialize as dynamic array
-        //});
-
-        ////TODO: Add payout limits
-        //rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[0] = JBCurrencyAmount({
-            //amount: 6_900_000_000_000_000_000, // 6.9 USD worth of ETH can be paid out.
-            //currency: 1 // USD
-        //});
-        //rulesetConfigurations[0].fundAccessLimitGroups[0].payoutLimits[1] = JBCurrencyAmount({
-            ////amount: 4_200_000_000_000_000_000, // 4.2 ETH can be paid out.
-            //amount: 200_000_000_000_000_000, // 0.2 ETH can be paid out.
-            //currency: 61166 // ETH
-        //});
-
-        //TODO: Add surplus allowances
-        //rulesetConfigurations[0].fundAccessLimitGroups[0].surplusAllowances[0] = JBCurrencyAmount({
-            //amount: 700_000_000_000_000_000_000, // 700 USD worth of ETH can be used by the project owner discretionarily from the project's surplus.
-            //currency: 1 // USD
-        //});
 
         //TODO: Add terminal configurations
         JBTerminalConfig[] memory terminalConfigurations = new JBTerminalConfig[](1);
