@@ -118,6 +118,8 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
         if (block.timestamp < deadline) {
             revert("Project funding deadline has not passed. Refunds are disabled.");
         }
+        // Contributors only recieve 50% of minted tokens. In order to get the correct refund amount,
+        // we need to double the cashOutCount.
         cashOutCount = context.cashOutCount * 2;
     }
 
