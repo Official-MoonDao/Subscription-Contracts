@@ -105,7 +105,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
                 useDataHookForPay: true,
                 useDataHookForCashOut: true,
-                dataHook: address(launchPadPayHook), // No data hook contract is attached to this ruleset.
+                dataHook: address(launchPadPayHook),
                 metadata: 0 // No metadata is attached to this ruleset.
             }),
             splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
