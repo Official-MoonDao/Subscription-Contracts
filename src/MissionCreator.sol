@@ -166,7 +166,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
-            beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split.
+            // FIXME set up amm
+            beneficiary: payable(address(0)), // The beneficiary of the split. This is the address that will receive the project's tokens issued from the payment.
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });

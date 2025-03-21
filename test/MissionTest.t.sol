@@ -93,7 +93,7 @@ contract MissionTest is Test {
         jbTokens = IJBTokens(0xA59e9F424901fB9DBD8913a9A32A081F9425bf36);
         jbController = IJBController(jbControllerAddress);
 
-        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, jbProjectsAddress, jbTerminalStoreAddress, address(moonDAOTeam), zero, user1);
+        missionCreator = new MissionCreator(jbControllerAddress, jbMultiTerminalAddress, jbProjectsAddress, jbTerminalStoreAddress, address(moonDAOTeam), zero, TREASURY);
         missionTable = new MissionTable("TestMissionTable", address(missionCreator));
         missionCreator.setMissionTable(address(missionTable));
 
@@ -596,11 +596,9 @@ contract MissionTest is Test {
         uint256 tokensMoonDAOVesting = jbTokens.totalBalanceOf(address(moonDAOVesting), projectId);
         assertEq(tokensTeamVesting, 300 * 1e18);
         assertEq(tokensMoonDAOVesting, 100 * 1e18);
-        uint256 tokensMoonDAOTreasury = jbTokens.totalBalanceOf(TREASURY, projectId);
-        uint256 tokensTeam = jbTokens.totalBalanceOf(teamAddress, projectId);
-        assertEq(tokensMoonDAOTreasury, 0);
+        assertEq(jbTokens.totalBalanceOf(TREASURY, projectId), 0);
         // FIXME why doesn't this pass?
-        //assertEq(tokensTeam, 0);
+        //assertEq(jbTokens.totalBalanceOf(teamAddress, projectId), 0);
 
         skip(200 days);
         assertEq(teamVesting.vestedAmount(), 0);
@@ -608,9 +606,20 @@ contract MissionTest is Test {
         skip(165 days);
         assertEq(teamVesting.vestedAmount(), 300/4 * 1e18);
         assertEq(moonDAOVesting.vestedAmount(), 100/4 * 1e18);
+
+        vm.startPrank(TREASURY);
+        moonDAOVesting.withdraw();
+        vm.stopPrank();
+        assertEq(jbTokens.totalBalanceOf(TREASURY, projectId), 100/4 * 1e18);
+
         skip(365 days);
         assertEq(teamVesting.vestedAmount(), 300/2 * 1e18);
         assertEq(moonDAOVesting.vestedAmount(), 100/2 * 1e18);
+
+        vm.startPrank(TREASURY);
+        moonDAOVesting.withdraw();
+        vm.stopPrank();
+        assertEq(jbTokens.totalBalanceOf(TREASURY, projectId), 100/2 * 1e18);
     }
 
     function testSetJBController() public {
