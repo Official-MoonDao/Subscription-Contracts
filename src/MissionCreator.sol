@@ -31,7 +31,6 @@ contract MissionCreator is Ownable, IERC721Receiver {
     address public moonDAOTreasury;
     mapping(uint256 => uint256) public missionIdToProjectId;
     mapping(uint256 => address) public missionIdToPayHook;
-    mapping(uint256 => address) public missionIdToTokenAddress;
 
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
@@ -198,7 +197,6 @@ contract MissionCreator is Ownable, IERC721Receiver {
         uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
         missionIdToProjectId[missionId] = projectId;
         missionIdToPayHook[missionId] = address(launchPadPayHook);
-        missionIdToTokenAddress[missionId] = tokenAddress;
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 

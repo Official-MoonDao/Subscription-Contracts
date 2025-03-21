@@ -407,7 +407,6 @@ contract MissionTest is Test {
            "This is a test project"
         );
         uint256 projectId = missionCreator.missionIdToProjectId(missionId);
-        address tokenAddress = missionCreator.missionIdToTokenAddress(missionId);
 
         IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
@@ -463,7 +462,6 @@ contract MissionTest is Test {
            "This is a test project"
         );
         uint256 projectId = missionCreator.missionIdToProjectId(missionId);
-        address tokenAddress = missionCreator.missionIdToTokenAddress(missionId);
 
         IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
@@ -513,7 +511,6 @@ contract MissionTest is Test {
            "This is a test project"
         );
         uint256 projectId = missionCreator.missionIdToProjectId(missionId);
-        address tokenAddress = missionCreator.missionIdToTokenAddress(missionId);
 
         IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
