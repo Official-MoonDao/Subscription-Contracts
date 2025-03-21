@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {MissionTable} from "./tables/MissionTable.sol";
+import {Vesting} from "./Vesting.sol";
 import {MoonDAOTeam} from "./ERC5643.sol";
 import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 import {IJBProjects} from "@nana-core/interfaces/IJBProjects.sol";
@@ -31,6 +32,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
     address public moonDAOTreasury;
     mapping(uint256 => uint256) public missionIdToProjectId;
     mapping(uint256 => address) public missionIdToPayHook;
+    mapping(uint256 => address) public missionIdToTeamVesting;
+    mapping(uint256 => address) public missionIdToMoonDAOVesting;
 
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
@@ -77,6 +80,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
         address payable toPayable = payable(to);
         address payable moonDAOTreasuryPayable = payable(moonDAOTreasury);
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
+        Vesting moonDAOVesting = new Vesting(moonDAOTreasuryPayable);
+        Vesting teamVesting = new Vesting(toPayable);
 
         //TODO: Configure ruleset
         LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
@@ -143,7 +148,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             percent: 100_000_000, // 10%, out of 1_000_000_000
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
-            beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split.
+            beneficiary: payable(address(moonDAOVesting)), // The beneficiary of the split.
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
@@ -152,7 +157,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             percent: 300_000_000, // 30%, out of 1_000_000_000
             projectId: 0, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
-            beneficiary: toPayable, // The beneficiary of the payment made to the project's primary terminal. This is the address that will receive the project's tokens issued from the payment.
+            beneficiary: payable(address(teamVesting)), // The beneficiary of the payment made to the project's primary terminal. This is the address that will receive the project's tokens issued from the payment.
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
@@ -191,12 +196,16 @@ contract MissionCreator is Ownable, IERC721Receiver {
         if(token){
             tokenAddress = address(jbController.deployERC20For(projectId, tokenName, tokenSymbol, 0));
         }
+        moonDAOVesting.setToken(tokenAddress);
+        teamVesting.setToken(tokenAddress);
 
         jbProjects.safeTransferFrom(address(this), to, projectId);
 
         uint256 missionId = missionTable.insertIntoTable(teamId, projectId, fundingGoal);
         missionIdToProjectId[missionId] = projectId;
         missionIdToPayHook[missionId] = address(launchPadPayHook);
+        missionIdToTeamVesting[missionId] = address(teamVesting);
+        missionIdToMoonDAOVesting[missionId] = address(moonDAOVesting);
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 
