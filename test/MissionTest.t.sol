@@ -4,19 +4,14 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import {Vesting} from "../src/Vesting.sol";
-import {JBRuleset} from "@nana-core/structs/JBRuleset.sol";
 import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
-import {JBApprovalStatus} from "@nana-core/enums/JBApprovalStatus.sol";
 import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
-import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
-import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
 import {IJBDirectory} from "@nana-core/interfaces/IJBDirectory.sol";
 import {MoonDAOTeam} from "../src/ERC5643.sol";
 import {GnosisSafeProxyFactory} from "../src/GnosisSafeProxyFactory.sol";
 import {MissionCreator} from "../src/MissionCreator.sol";
 import {MissionTable} from "../src/tables/MissionTable.sol";
 import {MoonDaoTeamTableland} from "../src/tables/MoonDaoTeamTableland.sol";
-import {TeamRowController} from "../src/tables/TeamRowController.sol";
 import {MoonDAOTeamCreator} from "../src/MoonDAOTeamCreator.sol";
 import {LaunchPadPayHook} from "../src/LaunchPadPayHook.sol";
 import {PassthroughModule} from "../src/PassthroughModule.sol";
@@ -27,7 +22,7 @@ import {deployModuleFactory} from "@hats-module/utils/DeployFunctions.sol";
 import {Whitelist} from "../src/Whitelist.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
 import {IJBTokens} from "@nana-core/interfaces/IJBTokens.sol";
-import { JBConstants } from "@nana-core/libraries/JBConstants.sol";
+import {JBConstants} from "@nana-core/libraries/JBConstants.sol";
 import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 import {IJBTerminalStore} from "@nana-core/interfaces/IJBTerminalStore.sol";
 
@@ -552,15 +547,14 @@ contract MissionTest is Test {
         vm.startPrank(user1);
         uint256 deadline = block.timestamp + 2 days;
         moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
-        // Half the token goal so that numbers work out nice, 1000 contributor tokens, and 1000 reserved tokens.
         uint256 missionId = missionCreator.createMission(
            0,
            teamAddress,
            "",
            0,
            deadline,
-           500_000_000_000_000_000,
            1_000_000_000_000_000_000,
+           2_000_000_000_000_000_000,
            true,
            "TEST TOKEN",
            "TEST",
@@ -572,7 +566,8 @@ contract MissionTest is Test {
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balance, 0);
 
-        uint256 payAmount = 500_000_000_000_000_000;
+        // Lower payment that numbers work out nice, 500 contributor tokens, and 500 reserved tokens.
+        uint256 payAmount = 250_000_000_000_000_000;
         terminal.pay{value: payAmount}(
             projectId,
             JBConstants.NATIVE_TOKEN,
@@ -585,7 +580,7 @@ contract MissionTest is Test {
         uint256 balanceAfter1 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balanceAfter1, payAmount);
         uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
-        assertEq(tokensAfter1, 1_000 * 1e18);
+        assertEq(tokensAfter1, 500 * 1e18);
 
         // FIXME this needs to be called once the token is launched
         jbController.sendReservedTokensToSplitsOf(projectId);
@@ -597,8 +592,7 @@ contract MissionTest is Test {
         assertEq(tokensTeamVesting, 300 * 1e18);
         assertEq(tokensMoonDAOVesting, 100 * 1e18);
         assertEq(jbTokens.totalBalanceOf(TREASURY, projectId), 0);
-        // FIXME why doesn't this pass?
-        //assertEq(jbTokens.totalBalanceOf(teamAddress, projectId), 0);
+        assertEq(jbTokens.totalBalanceOf(teamAddress, projectId), 0);
 
         skip(200 days);
         assertEq(teamVesting.vestedAmount(), 0);
