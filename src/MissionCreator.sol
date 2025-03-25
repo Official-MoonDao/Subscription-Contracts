@@ -34,6 +34,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
     mapping(uint256 => address) public missionIdToPayHook;
     mapping(uint256 => address) public missionIdToTeamVesting;
     mapping(uint256 => address) public missionIdToMoonDAOVesting;
+    mapping(uint256 => uint256) public missionIdToFundingGoal;
+    mapping(uint256 => uint256) public missionIdToMinFundingRequired;
 
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
@@ -207,6 +209,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionIdToPayHook[missionId] = address(launchPadPayHook);
         missionIdToTeamVesting[missionId] = address(teamVesting);
         missionIdToMoonDAOVesting[missionId] = address(moonDAOVesting);
+        missionIdToFundingGoal[missionId] = fundingGoal;
+        missionIdToMinFundingRequired[missionId] = minFundingRequired;
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 
