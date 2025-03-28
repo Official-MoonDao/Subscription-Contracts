@@ -147,7 +147,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         });
         // moondao token split
         rulesetConfigurations[0].splitGroups[1].splits[0] = JBSplit({
-            percent: 200_000_000, // 10%, out of 1_000_000_000
+            percent: 200_000_000, // 20% out of 1_000_000_000, of the 50% reserved tokens = 10% of total tokens
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: payable(address(moonDAOVesting)), // The beneficiary of the split.
@@ -156,7 +156,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         });
         // project token split
         rulesetConfigurations[0].splitGroups[1].splits[1] = JBSplit({
-            percent: 600_000_000, // 30%, out of 1_000_000_000
+            percent: 600_000_000, // 60% out of 1_000_000_000, of the 50% reserved tokens = 30% of total tokens
             projectId: 0, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
             beneficiary: payable(address(teamVesting)), // The beneficiary of the payment made to the project's primary terminal. This is the address that will receive the project's tokens issued from the payment.
@@ -165,7 +165,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         });
         // amm token split
         rulesetConfigurations[0].splitGroups[1].splits[2] = JBSplit({
-            percent: 200_000_000, // 10%, out of 1_000_000_000
+            percent: 200_000_000, // 20% out of 1_000_000_000, of the 50% reserved tokens = 10% of total tokens
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             // FIXME set up amm
