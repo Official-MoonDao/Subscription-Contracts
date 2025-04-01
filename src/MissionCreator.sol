@@ -21,6 +21,7 @@ import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import {IJBSplitHook} from "@nana-core/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
+
 contract MissionCreator is Ownable, IERC721Receiver {
     IJBController public jbController;
     IJBProjects public jbProjects;
@@ -79,7 +80,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
 
         uint256 deadline = block.timestamp + 28 days;
-        uint256 minFundingRequired = fundingGoal / 10;
+        // 20% of the funding goal must be raised within the deadline
+        uint256 minFundingRequired = fundingGoal / 5;
         LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({

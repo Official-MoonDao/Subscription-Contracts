@@ -6,9 +6,11 @@ import {TablelandDeployments} from "@evm-tableland/contracts/utils/TablelandDepl
 import {SQLHelpers} from "@evm-tableland/contracts/utils/SQLHelpers.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import {MoonDAOTeam} from "../ERC5643.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 
 contract MissionTable is ERC721Holder, Ownable {
+    using Strings for uint256;
     uint256 private _tableId;
     string private _TABLE_PREFIX;
     MoonDAOTeam public _moonDaoTeam;
@@ -34,7 +36,7 @@ contract MissionTable is ERC721Holder, Ownable {
                 "id integer primary key,"
                 "projectId integer,"
                 "teamId integer,"
-                "fundingGoal integer",
+                "fundingGoal text",
                 _TABLE_PREFIX
             )
         );
@@ -88,7 +90,8 @@ contract MissionTable is ERC721Holder, Ownable {
                 ",",
                 Strings.toString(teamId),
                 ",",
-                Strings.toString(fundingGoal)
+                // Convert to string to avoid overflow
+                SQLHelpers.quote(fundingGoal.toString())
         );
         TablelandDeployments.get().mutate(
             address(this), // Table owner, i.e., this contract
