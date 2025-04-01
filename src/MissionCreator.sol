@@ -78,7 +78,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         address payable moonDAOTreasuryPayable = payable(moonDAOTreasury);
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
 
-        uint256 deadline = block.timestamp + 30 days;
+        uint256 deadline = block.timestamp + 28 days;
         uint256 minFundingRequired = fundingGoal / 10;
         LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);

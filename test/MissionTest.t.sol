@@ -96,7 +96,7 @@ contract MissionTest is Test {
         vm.stopPrank();
     }
 
-    function testCreateTeamProject1() public {
+    function testCreateTeamProject() public {
         vm.startPrank(user1);
         moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
         uint256 missionId = missionCreator.createMission(
@@ -164,6 +164,44 @@ contract MissionTest is Test {
         vm.stopPrank();
     }
 
+    function testCreateTeamProjectZeroGoal() public {
+        vm.startPrank(user1);
+        moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
+        uint256 missionId = missionCreator.createMission(
+           0,
+           user1,
+           "",
+           0,
+           0,
+           true,
+           "TEST TOKEN",
+           "TEST",
+           "This is a test project"
+        );
+        uint256 projectId = missionCreator.missionIdToProjectId(missionId);
+
+        IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
+        uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        assertEq(balance, 0);
+
+        uint256 payAmount1 = 1_000_000_000_000_000_000;
+        terminal.pay{value: payAmount1}(
+            projectId,
+            JBConstants.NATIVE_TOKEN,
+            0,
+            user1,
+            0,
+            "",
+            new bytes(0)
+        );
+        uint256 balanceAfter1 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        assertEq(balanceAfter1, payAmount1);
+        uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
+        assertEq(tokensAfter1, payAmount1 * 500);
+
+        vm.stopPrank();
+    }
+
     function testCreateTeamProjectReachesDeadline() public {
         vm.startPrank(user1);
         moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
@@ -184,7 +222,7 @@ contract MissionTest is Test {
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balance, 0);
 
-        skip(30 days);
+        skip(28 days);
         uint256 payAmount = 1_000_000_000_000_000_000;
         vm.expectRevert();
         terminal.pay{value: payAmount}(
