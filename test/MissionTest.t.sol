@@ -116,7 +116,7 @@ contract MissionTest is Test {
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balance, 0);
 
-        uint256 payAmount1 = 1_000_000_000_000_000_000;
+        uint256 payAmount1 = 2_000_000_000_000_000_000;
         terminal.pay{value: payAmount1}(
             projectId,
             JBConstants.NATIVE_TOKEN,
@@ -131,7 +131,7 @@ contract MissionTest is Test {
         uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
         assertEq(tokensAfter1, payAmount1 * 2_000);
 
-        uint256 payAmount2 = 9_000_000_000_000_000_000;
+        uint256 payAmount2 = 8_000_000_000_000_000_000;
         terminal.pay{value: payAmount2}(
             projectId,
             JBConstants.NATIVE_TOKEN,
@@ -269,7 +269,7 @@ contract MissionTest is Test {
         uint256 balanceAfter1 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balanceAfter1, payAmount);
         uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
-        assertEq(tokensAfter1, 11_000 * 1e18);
+        assertEq(tokensAfter1, 12_000 * 1e18);
     }
 
     function testCreateTeamProjectHugePayment() public {
@@ -306,7 +306,7 @@ contract MissionTest is Test {
         assertEq(balanceAfter1, payAmount);
         uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
         // Due to rounding errors in calculating the weighted average, we end up with 3499999999999999999998 instead of the expected 3500000000000000000000
-        assertApproxEqAbs(tokensAfter1, 11_500 * 1e18, 11);
+        assertApproxEqAbs(tokensAfter1, 12_500 * 1e18, 11);
     }
 
     function testCreateTeamProjectFundingCrossesGoal() public {
@@ -329,7 +329,7 @@ contract MissionTest is Test {
         uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balance, 0);
 
-        uint256 payAmount1 = 1_500_000_000_000_000_000;
+        uint256 payAmount1 = 3_000_000_000_000_000_000;
         terminal.pay{value: payAmount1}(
             projectId,
             JBConstants.NATIVE_TOKEN,
@@ -342,9 +342,9 @@ contract MissionTest is Test {
         uint256 balanceAfter1 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balanceAfter1, payAmount1);
         uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
-        assertApproxEqAbs(tokensAfter1, 2_500 * 1e18, 1);
+        assertApproxEqAbs(tokensAfter1, 5_000 * 1e18, 2);
 
-        uint256 payAmount2 = 9_500_000_000_000_000_000;
+        uint256 payAmount2 = 9_000_000_000_000_000_000;
         terminal.pay{value: payAmount2}(
             projectId,
             JBConstants.NATIVE_TOKEN,
@@ -357,7 +357,7 @@ contract MissionTest is Test {
         uint256 balanceAfter2 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
         assertEq(balanceAfter2, payAmount1 + payAmount2);
         uint256 tokensAfter2 = jbTokens.totalBalanceOf(user1, projectId);
-        assertApproxEqAbs(tokensAfter2, tokensAfter1 + 9_000 * 1e18, 4);
+        assertApproxEqAbs(tokensAfter2, tokensAfter1 + 8_000 * 1e18, 4);
 
         uint256 payAmount3 = 1_000_000_000_000_000_000;
         terminal.pay{value: payAmount3}(
