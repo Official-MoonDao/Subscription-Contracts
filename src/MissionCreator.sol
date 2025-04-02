@@ -22,6 +22,7 @@ import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import {IJBSplitHook} from "@nana-core/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
+
 contract MissionCreator is Ownable, IERC721Receiver {
     IJBController public jbController;
     IJBProjects public jbProjects;
@@ -73,7 +74,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionTable = MissionTable(_missionTable);
     }
 
-    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 deadline, uint256 minFundingRequired, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
 
         if(msg.sender != owner()) {
             require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
@@ -85,7 +86,9 @@ contract MissionCreator is Ownable, IERC721Receiver {
         Vesting moonDAOVesting = new Vesting(moonDAOTreasuryPayable);
         Vesting teamVesting = new Vesting(toPayable);
 
-        //TODO: Configure ruleset
+        uint256 deadline = block.timestamp + 28 days;
+        // 20% of the funding goal must be raised within the deadline
+        uint256 minFundingRequired = fundingGoal / 5;
         LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({
