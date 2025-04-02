@@ -422,9 +422,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            0,
-           deadline,
-           1_000_000_000_000_000_000,
-           2_000_000_000_000_000_000,
+           10_000_000_000_000_000_000,
            true,
            "TEST TOKEN",
            "TEST",
@@ -452,7 +450,7 @@ contract MissionTest is Test {
         assertEq(tokensAfter1, 1_000 * 1e18);
 
         uint256 user1BalanceBefore = address(user1).balance;
-        skip(2 days);
+        skip(28 days);
         uint256 cashOutAmount = IJBMultiTerminal(address(terminal)).cashOutTokensOf(
             user1,
             projectId,
@@ -477,9 +475,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            0,
-           deadline,
-           1_000_000_000_000_000_000,
-           2_000_000_000_000_000_000,
+           10_000_000_000_000_000_000,
            true,
            "TEST TOKEN",
            "TEST",
@@ -526,9 +522,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            0,
-           deadline,
-           1_000_000_000_000_000_000,
-           2_000_000_000_000_000_000,
+           10_000_000_000_000_000_000,
            true,
            "TEST TOKEN",
            "TEST",
@@ -576,9 +570,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            0,
-           deadline,
-           1_000_000_000_000_000_000,
-           2_000_000_000_000_000_000,
+           10_000_000_000_000_000_000,
            true,
            "TEST TOKEN",
            "TEST",
