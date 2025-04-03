@@ -37,6 +37,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
     mapping(uint256 => address) public missionIdToMoonDAOVesting;
     mapping(uint256 => uint256) public missionIdToFundingGoal;
     mapping(uint256 => uint256) public missionIdToMinFundingRequired;
+    mapping(uint256 => address) public missionIdToTerminal;
 
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
 
@@ -214,10 +215,18 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionIdToMoonDAOVesting[missionId] = address(moonDAOVesting);
         missionIdToFundingGoal[missionId] = fundingGoal;
         missionIdToMinFundingRequired[missionId] = minFundingRequired;
+        missionIdToTerminal[missionId] = address(terminal);
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
 
         return missionId;
+    }
+
+    function stage(uint256 missionId) external returns (uint256) {
+        address payHookAddress = missionIdToPayHook[missionId];
+        return LaunchPadPayHook(payHookAddress).stage(
+            missionIdToTerminal[missionId],
+            missionIdToProjectId[missionId]);
     }
 
     function onERC721Received(

@@ -109,6 +109,7 @@ contract MissionTest is Test {
            "TEST",
            "This is a test project"
         );
+        assertEq(missionCreator.stage(missionId), 1);
         uint256 projectId = missionCreator.missionIdToProjectId(missionId);
 
         IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
@@ -129,6 +130,7 @@ contract MissionTest is Test {
         assertEq(balanceAfter1, payAmount1);
         uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
         assertEq(tokensAfter1, payAmount1 * 2_000);
+        assertEq(missionCreator.stage(missionId), 2);
 
         uint256 payAmount2 = 8_000_000_000_000_000_000;
         terminal.pay{value: payAmount2}(
@@ -159,6 +161,7 @@ contract MissionTest is Test {
         assertEq(balanceAfter3, payAmount1 + payAmount2 + payAmount3);
         uint256 tokensAfter3 = jbTokens.totalBalanceOf(user1, projectId);
         assertEq(tokensAfter3, tokensAfter2 + payAmount3 * 500);
+        assertEq(missionCreator.stage(missionId), 3);
 
         vm.stopPrank();
     }
@@ -451,6 +454,7 @@ contract MissionTest is Test {
 
         uint256 user1BalanceBefore = address(user1).balance;
         skip(28 days);
+        assertEq(missionCreator.stage(missionId), 4);
         uint256 cashOutAmount = IJBMultiTerminal(address(terminal)).cashOutTokensOf(
             user1,
             projectId,

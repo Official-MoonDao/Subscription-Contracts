@@ -131,4 +131,20 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IJBRulesetDataHook).interfaceId;
     }
+
+    // return a stage number based on what tier the project is in.
+    function stage(address terminal, uint256 projectId) public view returns (uint256) {
+        uint256 currentFunding = _totalFunding(terminal, projectId);
+        if (currentFunding < minFundingRequired) {
+            if (block.timestamp >= deadline) {
+                return 4; // Refund stage
+            } else {
+                return 1; // Stage 1
+            }
+        } else if (currentFunding < fundingGoal) {
+            return 2; // Stage 2
+        } else {
+            return 3; // Stage 3
+        }
+    }
 }
