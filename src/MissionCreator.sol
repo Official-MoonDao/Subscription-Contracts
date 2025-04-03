@@ -222,7 +222,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         return missionId;
     }
 
-    function stage(uint256 missionId) external returns (uint256) {
+    function stage(uint256 missionId) external view returns (uint256) {
         address payHookAddress = missionIdToPayHook[missionId];
         return LaunchPadPayHook(payHookAddress).stage(
             missionIdToTerminal[missionId],
