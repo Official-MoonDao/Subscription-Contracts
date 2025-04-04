@@ -39,7 +39,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
     mapping(uint256 => uint256) public missionIdToMinFundingRequired;
     mapping(uint256 => address) public missionIdToTerminal;
 
-    event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 duration, uint256 fundingGoal);
+    event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 fundingGoal);
 
     constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _jbTerminalStore, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
         jbController = IJBController(_jbController);
@@ -75,7 +75,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionTable = MissionTable(_missionTable);
     }
 
-    function createMission(uint256 teamId, address to, string calldata projectUri, uint32 duration, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+    function createMission(uint256 teamId, address to, string calldata projectUri, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
 
         if(msg.sender != owner()) {
             require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
@@ -94,7 +94,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({
             mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
-            duration: duration, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
+            duration: 0, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
             weight: 2_000_000_000_000_000_000_000, // Standard rate is 2,000 tokens issued per unit of `baseCurrency` set below, 1,000 going to the funder and 1,000 going to the project. Note that this will be modified by the payhook based on current amount of funds raised, min funding required, and funding goal.
             weightCutPercent: 0, // 0% weight cut. If the `duration` property above is set to a non-zero value, the `weightCutPercent` property will be used to determine how much of the weight is cut from this ruleset to the next cycle.
             approvalHook: IJBRulesetApprovalHook(address(0)), // No approval hook contract is attached to this ruleset, meaning new rulesets can be queued at any time and will take effect as soon as possible given the current ruleset's `duration`.
@@ -217,7 +217,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionIdToMinFundingRequired[missionId] = minFundingRequired;
         missionIdToTerminal[missionId] = address(terminal);
 
-        emit MissionCreated(missionId, teamId, projectId, tokenAddress, duration, fundingGoal);
+        emit MissionCreated(missionId, teamId, projectId, tokenAddress, fundingGoal);
 
         return missionId;
     }
