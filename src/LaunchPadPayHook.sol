@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import { console2 } from "forge-std/Test.sol"; // remove before deploy
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {JBPayHookSpecification} from "@nana-core/structs/JBPayHookSpecification.sol";
@@ -24,6 +25,10 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
     uint256 public immutable minFundingRequired;
     uint256 public immutable fundingGoal;
     uint256 public immutable deadline;
+    uint256 cashedOutCount;
+    uint256 rateTier1 = 4_000_000_000_000_000_000_000; // 2,000 tokens per ETH for funding below minFundingRequired
+    uint256 rateTier2 = 2_000_000_000_000_000_000_000; // 1,000 tokens per ETH for funding between minFundingRequired and fundingGoal
+    uint256 rateTier3 = 1_000_000_000_000_000_000_000; // 500 tokens per ETH for funding above fundingGoal
 
     // fundingTurnedOff can be toggled by the owner.
     bool public fundingTurnedOff;
@@ -63,9 +68,6 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
 
         // Define our rates:
         // Rate values include the 1e18 multiplier, and are doubled (due to 50% project tokens split as noted).
-        uint256 rateTier1 = 4_000_000_000_000_000_000_000; // 2,000 tokens per ETH for funding below minFundingRequired
-        uint256 rateTier2 = 2_000_000_000_000_000_000_000; // 1,000 tokens per ETH for funding between minFundingRequired and fundingGoal
-        uint256 rateTier3 = 1_000_000_000_000_000_000_000; // 500 tokens per ETH for funding above fundingGoal
 
         weight = 0;
         uint256 remainingPayment = paymentAmount;
@@ -120,7 +122,20 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
         }
         // Contributors only recieve 50% of minted tokens. In order to get the correct refund amount,
         // we need to double the cashOutCount.
-        cashOutCount = context.cashOutCount * 2;
+        cashOutCount = context.cashOutCount;
+        // log zero address balance
+        //uint256 zeroAddressBalance = context.terminal.balanceOf(context.projectId, address(0));
+        console2.log("context.totalSupply", context.totalSupply);
+        console2.log('currentFunding', currentFunding);
+        //1000 token
+
+        //1 eth funding
+        //total supply should be 2000
+
+        //1 eth / 
+        //totalSupply = (rateTier1 * 1e18/2) / currentFunding;
+        totalSupply = (currentFunding * rateTier1) / (2 * 1e18);
+        console2.log('totalSupply', totalSupply);
     }
 
     function hasMintPermissionFor(uint256 projectId, address addr) external view override returns (bool flag){

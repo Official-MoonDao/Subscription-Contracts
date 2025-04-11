@@ -75,7 +75,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionTable = MissionTable(_missionTable);
     }
 
-    function createMission(uint256 teamId, address to, string calldata projectUri, uint256 fundingGoal, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
+    function createMission(uint256 teamId, address to, string calldata projectUri, uint256 fundingGoal, uint256 deadline, bool token, string calldata tokenName, string calldata tokenSymbol, string calldata memo) external returns (uint256) {
 
         if(msg.sender != owner()) {
             require(moonDAOTeam.isManager(teamId, msg.sender), "Only a manager of the team or owner of the contract can create a mission.");
@@ -87,7 +87,9 @@ contract MissionCreator is Ownable, IERC721Receiver {
         Vesting moonDAOVesting = new Vesting(moonDAOTreasuryPayable);
         Vesting teamVesting = new Vesting(toPayable);
 
-        uint256 deadline = block.timestamp + 28 days;
+        if (block.chainid != 11155111) {
+            deadline = block.timestamp + 28 days;
+        }
         // 20% of the funding goal must be raised within the deadline
         uint256 minFundingRequired = fundingGoal / 5;
         LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
