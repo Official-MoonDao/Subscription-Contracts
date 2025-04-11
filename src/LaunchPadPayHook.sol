@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import { console2 } from "forge-std/Test.sol"; // remove before deploy
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {JBPayHookSpecification} from "@nana-core/structs/JBPayHookSpecification.sol";
@@ -24,6 +25,10 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
     uint256 public immutable minFundingRequired;
     uint256 public immutable fundingGoal;
     uint256 public immutable deadline;
+    uint256 cashedOutCount;
+    uint256 rateTier1 = 4_000_000_000_000_000_000_000; // 2,000 tokens per ETH for funding below minFundingRequired
+    uint256 rateTier2 = 2_000_000_000_000_000_000_000; // 1,000 tokens per ETH for funding between minFundingRequired and fundingGoal
+    uint256 rateTier3 = 1_000_000_000_000_000_000_000; // 500 tokens per ETH for funding above fundingGoal
 
     // fundingTurnedOff can be toggled by the owner.
     bool public fundingTurnedOff;
@@ -63,9 +68,6 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
 
         // Define our rates:
         // Rate values include the 1e18 multiplier, and are doubled (due to 50% project tokens split as noted).
-        uint256 rateTier1 = 4_000_000_000_000_000_000_000; // 2,000 tokens per ETH for funding below minFundingRequired
-        uint256 rateTier2 = 2_000_000_000_000_000_000_000; // 1,000 tokens per ETH for funding between minFundingRequired and fundingGoal
-        uint256 rateTier3 = 1_000_000_000_000_000_000_000; // 500 tokens per ETH for funding above fundingGoal
 
         weight = 0;
         uint256 remainingPayment = paymentAmount;
@@ -118,9 +120,13 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
         if (block.timestamp < deadline) {
             revert("Project funding deadline has not passed. Refunds are disabled.");
         }
-        // Contributors only recieve 50% of minted tokens. In order to get the correct refund amount,
-        // we need to double the cashOutCount.
-        cashOutCount = context.cashOutCount * 2;
+        // Refund amount = currentFunds * (userTokenCount / currentTokenSupply)
+        // Since reserved tokens are not eligible for refunds, and the reserve rate
+        // is 50%, we need to divide the currentTokenSupply by 2.
+        // context.totalSupply includes reserved tokens, so instead calculate the
+        // totalSupply as currentFunding * rateTier1.
+        cashOutCount = context.cashOutCount;
+        totalSupply = (currentFunding * rateTier1) / (2 * 1e18);
     }
 
     function hasMintPermissionFor(uint256 projectId, address addr) external view override returns (bool flag){
@@ -130,5 +136,21 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
     /// @notice ERC165 support.
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IJBRulesetDataHook).interfaceId;
+    }
+
+    // return a stage number based on what tier the project is in.
+    function stage(address terminal, uint256 projectId) public view returns (uint256) {
+        uint256 currentFunding = _totalFunding(terminal, projectId);
+        if (currentFunding < minFundingRequired) {
+            if (block.timestamp >= deadline) {
+                return 4; // Refund stage
+            } else {
+                return 1; // Stage 1
+            }
+        } else if (currentFunding < fundingGoal) {
+            return 2; // Stage 2
+        } else {
+            return 3; // Stage 3
+        }
     }
 }
