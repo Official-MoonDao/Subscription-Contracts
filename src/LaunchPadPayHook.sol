@@ -5,6 +5,7 @@ import { console2 } from "forge-std/Test.sol"; // remove before deploy
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {JBPayHookSpecification} from "@nana-core/structs/JBPayHookSpecification.sol";
+import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
 import {JBBeforePayRecordedContext} from "@nana-core/structs/JBBeforePayRecordedContext.sol";
 import {JBBeforeCashOutRecordedContext} from "@nana-core/structs/JBBeforeCashOutRecordedContext.sol";
 import {JBCashOutHookSpecification} from "@nana-core/structs/JBCashOutHookSpecification.sol";
@@ -22,30 +23,27 @@ import { JBConstants } from "@nana-core/libraries/JBConstants.sol";
 //     of tokens received per ETH based on the funding status.
 contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
 
-    uint256 public immutable minFundingRequired;
     uint256 public immutable fundingGoal;
     uint256 public immutable deadline;
     uint256 cashedOutCount;
-    uint256 rateTier1 = 4_000_000_000_000_000_000_000; // 2,000 tokens per ETH for funding below minFundingRequired
-    uint256 rateTier2 = 2_000_000_000_000_000_000_000; // 1,000 tokens per ETH for funding between minFundingRequired and fundingGoal
-    uint256 rateTier3 = 1_000_000_000_000_000_000_000; // 500 tokens per ETH for funding above fundingGoal
 
     // fundingTurnedOff can be toggled by the owner.
     bool public fundingTurnedOff;
 
     IJBTerminalStore public jbTerminalStore;
+    IJBRulesets jbRulesets;
 
     constructor(
-        uint256 _minFundingRequired,
         uint256 _fundingGoal,
         uint256 _deadline,
         address _jbTerminalStoreAddress,
+        address _jbRulesetAddress,
         address owner
     ) Ownable(owner) {
-        minFundingRequired = _minFundingRequired;
         fundingGoal = _fundingGoal;
         deadline = _deadline;
         jbTerminalStore = IJBTerminalStore(_jbTerminalStoreAddress);
+        jbRulesets = IJBRulesets(_jbRulesetAddress);
     }
 
     function setFundingTurnedOff(bool _fundingTurnedOff) external onlyOwner {
@@ -58,54 +56,15 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
 
     function beforePayRecordedWith(JBBeforePayRecordedContext calldata context) external view override returns (uint256 weight, JBPayHookSpecification[] memory hookSpecifications) {
         if (fundingTurnedOff) {
-            revert("Project funding has been turned off.");
+            revert("Funding has been turned off.");
         }
-
-        // Get current funding and the incoming payment amount.
         uint256 currentFunding = _totalFunding(context.terminal, context.projectId);
-        require(context.amount.token == JBConstants.NATIVE_TOKEN);
-        uint256 paymentAmount = context.amount.value;
-
-        // Define our rates:
-        // Rate values include the 1e18 multiplier, and are doubled (due to 50% project tokens split as noted).
-
-        weight = 0;
-        uint256 remainingPayment = paymentAmount;
-
-        // In the case where a payment will bring a project over minFundingRequired or fundingGoal
-        // we need to calculate the weighted average of the rates.
-
-        // Tier 1: Payments that bring total funding up to minFundingRequired.
-        if (currentFunding < minFundingRequired) {
-            if (block.timestamp >= deadline) {
-                revert("Project funding deadline has passed and minimum funding requirement has not been met.");
-            }
-            uint256 paymentTier1 = remainingPayment;
-            if (currentFunding + paymentTier1 > minFundingRequired) {
-                paymentTier1 = minFundingRequired - currentFunding;
-            }
-            weight += (paymentTier1 * rateTier1) / paymentAmount;
-            remainingPayment -= paymentTier1;
-            currentFunding += paymentTier1;
+        if (currentFunding < fundingGoal && block.timestamp >= deadline) {
+            revert("Project funding deadline has passed and funding goal requirement has not been met.");
         }
-
-        // Tier 2: Payments that fill funding from minFundingRequired up to fundingGoal.
-        if (remainingPayment > 0 && currentFunding < fundingGoal) {
-            uint256 paymentTier2 = remainingPayment;
-            if (currentFunding + paymentTier2 > fundingGoal) {
-                paymentTier2 = fundingGoal - currentFunding;
-            }
-            weight += (paymentTier2 * rateTier2) / paymentAmount;
-            remainingPayment -= paymentTier2;
-            currentFunding += paymentTier2;
-        }
-
-        // Tier 3: Payments beyond the fundingGoal.
-        if (remainingPayment > 0) {
-            weight += (remainingPayment * rateTier3) / paymentAmount;
-            remainingPayment = 0;
-        }
+        weight = context.weight;
     }
+
     function beforeCashOutRecordedWith(JBBeforeCashOutRecordedContext calldata context) external view override
         returns (
         uint256 cashOutTaxRate,
@@ -114,8 +73,8 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
         JBCashOutHookSpecification[] memory hookSpecifications
     ){
         uint256 currentFunding = _totalFunding(context.terminal, context.projectId);
-        if (currentFunding >= minFundingRequired){
-            revert("Project has passed minimum funding requirement. Refunds are disabled.");
+        if (currentFunding >= fundingGoal){
+            revert("Project has passed funding goal requirement. Refunds are disabled.");
         }
         if (block.timestamp < deadline) {
             revert("Project funding deadline has not passed. Refunds are disabled.");
@@ -125,8 +84,9 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
         // is 50%, we need to divide the currentTokenSupply by 2.
         // context.totalSupply includes reserved tokens, so instead calculate the
         // totalSupply as currentFunding * rateTier1.
+        uint256 weight = jbRulesets.getRulesetOf(context.projectId, context.rulesetId).weight;
         cashOutCount = context.cashOutCount;
-        totalSupply = (currentFunding * rateTier1) / (2 * 1e18);
+        totalSupply = (currentFunding * weight) / (2 * 1e18);
     }
 
     function hasMintPermissionFor(uint256 projectId, address addr) external view override returns (bool flag){
@@ -141,16 +101,14 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
     // return a stage number based on what tier the project is in.
     function stage(address terminal, uint256 projectId) public view returns (uint256) {
         uint256 currentFunding = _totalFunding(terminal, projectId);
-        if (currentFunding < minFundingRequired) {
+        if (currentFunding < fundingGoal) {
             if (block.timestamp >= deadline) {
-                return 4; // Refund stage
+                return 3; // Refund stage
             } else {
                 return 1; // Stage 1
             }
-        } else if (currentFunding < fundingGoal) {
-            return 2; // Stage 2
         } else {
-            return 3; // Stage 3
+            return 2; // Stage 3
         }
     }
 }
