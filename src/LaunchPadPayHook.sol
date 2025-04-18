@@ -59,6 +59,7 @@ contract LaunchPadPayHook is IJBRulesetDataHook, Ownable {
             revert("Funding has been turned off.");
         }
         uint256 currentFunding = _totalFunding(context.terminal, context.projectId);
+        require(context.amount.token == JBConstants.NATIVE_TOKEN);
         if (currentFunding < fundingGoal && block.timestamp >= deadline) {
             revert("Project funding deadline has passed and funding goal requirement has not been met.");
         }
