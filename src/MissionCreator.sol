@@ -19,6 +19,7 @@ import {JBCurrencyAmount} from "@nana-core/structs/JBCurrencyAmount.sol";
 import {JBAccountingContext} from "@nana-core/structs/JBAccountingContext.sol";
 import {JBTerminalConfig} from "@nana-core/structs/JBTerminalConfig.sol";
 import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
+import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import {IJBSplitHook} from "@nana-core/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
@@ -28,6 +29,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
     IJBProjects public jbProjects;
     address public jbMultiTerminalAddress;
     address public jbTerminalStoreAddress;
+    address public jbRulesetsAddress;
     MoonDAOTeam public moonDAOTeam;
     MissionTable public missionTable;
     address public moonDAOTreasury;
@@ -36,16 +38,16 @@ contract MissionCreator is Ownable, IERC721Receiver {
     mapping(uint256 => address) public missionIdToTeamVesting;
     mapping(uint256 => address) public missionIdToMoonDAOVesting;
     mapping(uint256 => uint256) public missionIdToFundingGoal;
-    mapping(uint256 => uint256) public missionIdToMinFundingRequired;
     mapping(uint256 => address) public missionIdToTerminal;
 
     event MissionCreated(uint256 indexed id, uint256 indexed teamId, uint256 indexed projectId, address tokenAddress, uint256 fundingGoal);
 
-    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _jbTerminalStore, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
+    constructor(address _jbController, address _jbMultiTerminal, address _jbProjects, address _jbTerminalStore, address _jbRulesets, address _moonDAOTeam, address _missionTable, address _moonDAOTreasury) Ownable(msg.sender) {
         jbController = IJBController(_jbController);
         jbProjects = IJBProjects(_jbProjects);
         jbMultiTerminalAddress = _jbMultiTerminal;
         jbTerminalStoreAddress = _jbTerminalStore;
+        jbRulesetsAddress = _jbRulesets;
         moonDAOTeam = MoonDAOTeam(_moonDAOTeam);
         missionTable = MissionTable(_missionTable);
         moonDAOTreasury = payable(_moonDAOTreasury);
@@ -90,9 +92,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         if (block.chainid != 11155111) {
             deadline = block.timestamp + 28 days;
         }
-        // 20% of the funding goal must be raised within the deadline
-        uint256 minFundingRequired = fundingGoal / 5;
-        LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(minFundingRequired, fundingGoal, deadline, jbTerminalStoreAddress, to);
+        LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(fundingGoal, deadline, jbTerminalStoreAddress, jbRulesetsAddress, to);
         JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
         rulesetConfigurations[0] = JBRulesetConfig({
             mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
@@ -216,7 +216,6 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionIdToTeamVesting[missionId] = address(teamVesting);
         missionIdToMoonDAOVesting[missionId] = address(moonDAOVesting);
         missionIdToFundingGoal[missionId] = fundingGoal;
-        missionIdToMinFundingRequired[missionId] = minFundingRequired;
         missionIdToTerminal[missionId] = address(terminal);
 
         emit MissionCreated(missionId, teamId, projectId, tokenAddress, fundingGoal);
