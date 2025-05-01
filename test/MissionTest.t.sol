@@ -2,8 +2,10 @@
 
 pragma solidity ^0.8.20;
 
+import "forge-std/console.sol";
 import "forge-std/Test.sol";
 import {Vesting} from "../src/Vesting.sol";
+import {PoolDeployer} from "../src/PoolDeployer.sol";
 import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
 import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
 import {IJBDirectory} from "@nana-core/interfaces/IJBDirectory.sol";
@@ -32,8 +34,7 @@ contract MissionTest is Test {
     address user1 = address(0x1);
     address teamAddress = address(0x2);
     address user2 = address(0x3);
-    address user4 = address(0x4);
-    address TREASURY = user4;
+    address TREASURY = address(0x4);
 
     bytes32 internal constant SALT = bytes32(abi.encode(0x4a75));
 
@@ -586,6 +587,60 @@ contract MissionTest is Test {
         moonDAOVesting.withdraw();
         vm.stopPrank();
         assertEq(jbTokens.totalBalanceOf(TREASURY, projectId), 100/2 * 1e18);
+    }
+
+    function testCreateTeamProjectPayouts() public {
+        vm.startPrank(user1);
+        uint256 deadline = block.timestamp + 2 days;
+        moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
+        uint256 missionId = missionCreator.createMission(
+           0,
+           teamAddress,
+           "",
+           10_000_000_000_000_000_000,
+           0,
+           true,
+           "TEST TOKEN",
+           "TEST",
+           "This is a test project"
+        );
+        uint256 projectId = missionCreator.missionIdToProjectId(missionId);
+
+        IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
+        uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        assertEq(balance, 0);
+
+        // Lower payment that numbers work out nice, 500 contributor tokens, and 500 reserved tokens.
+        uint256 payAmount = 500_000_000_000_000_000;
+        terminal.pay{value: payAmount}(
+            projectId,
+            JBConstants.NATIVE_TOKEN,
+            0,
+            user1,
+            0,
+            "",
+            new bytes(0)
+        );
+        uint256 balanceAfter1 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        assertEq(balanceAfter1, payAmount);
+        uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
+        assertEq(tokensAfter1, 500 * 1e18);
+
+        // FIXME this needs to be called once the token is launched
+        jbController.sendReservedTokensToSplitsOf(projectId);
+        address tokenAddress = address(jbTokens.tokenOf(projectId));
+        //uint256 JB_ETH_CURRENCY = 1;
+        uint256 payoutAmount = IJBMultiTerminal(address(terminal)).sendPayoutsOf(
+            projectId,
+            JBConstants.NATIVE_TOKEN,
+            1,
+            uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            0
+        );
+        console.log("payoutAmount", payoutAmount);
+
+        PoolDeployer poolDeployer = PoolDeployer(payable(missionCreator.missionIdToPoolDeployer(missionId)));
+        assertEq(jbTokens.totalBalanceOf(address(poolDeployer), projectId), 100 * 1e18);
     }
 
     function testSetJBController() public {

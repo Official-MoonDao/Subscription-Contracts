@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {MissionTable} from "./tables/MissionTable.sol";
 import {Vesting} from "./Vesting.sol";
+import {PoolDeployer} from "./PoolDeployer.sol";
 import {MoonDAOTeam} from "./ERC5643.sol";
 import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 import {IJBProjects} from "@nana-core/interfaces/IJBProjects.sol";
@@ -15,6 +16,8 @@ import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
 import {JBSplitGroup} from "@nana-core/structs/JBSplitGroup.sol";
 import {JBSplit} from "@nana-core/structs/JBSplit.sol";
 import {JBFundAccessLimitGroup} from "@nana-core/structs/JBFundAccessLimitGroup.sol";
+import {JBCurrencyAmount} from "@nana-core/structs/JBCurrencyAmount.sol";
+import {JBConstants} from "@nana-core/libraries/JBConstants.sol";
 import {JBAccountingContext} from "@nana-core/structs/JBAccountingContext.sol";
 import {JBTerminalConfig} from "@nana-core/structs/JBTerminalConfig.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
@@ -34,6 +37,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
     mapping(uint256 => address) public missionIdToPayHook;
     mapping(uint256 => address) public missionIdToTeamVesting;
     mapping(uint256 => address) public missionIdToMoonDAOVesting;
+    mapping(uint256 => address) public missionIdToPoolDeployer;
     mapping(uint256 => uint256) public missionIdToFundingGoal;
     mapping(uint256 => address) public missionIdToTerminal;
 
@@ -85,6 +89,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
         IJBTerminal terminal = IJBTerminal(jbMultiTerminalAddress);
         Vesting moonDAOVesting = new Vesting(moonDAOTreasuryPayable);
         Vesting teamVesting = new Vesting(toPayable);
+        PoolDeployer poolDeployer = new PoolDeployer();
+
 
         if (block.chainid != 11155111) {
             deadline = block.timestamp + 28 days;
@@ -121,14 +127,26 @@ contract MissionCreator is Ownable, IERC721Receiver {
             splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
             fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
+
+        JBCurrencyAmount[] memory payoutLimits = new JBCurrencyAmount[](1);
+        payoutLimits[0] = JBCurrencyAmount({
+            amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH
+            currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+        });
+        rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
+            terminal: address(terminal),
+            token: JBConstants.NATIVE_TOKEN,
+            payoutLimits: payoutLimits,
+            surplusAllowances: new JBCurrencyAmount[](0)
+        });
         //TODO: Configure split groups
         rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
-            splits: new JBSplit[](2) // Initialize as dynamic array
+            splits: new JBSplit[](3) // Initialize as dynamic array
         });
         rulesetConfigurations[0].splitGroups[0].splits[0] = JBSplit({
-            percent: 179_487_180, // works out to 17.5% after 2.5% fee. 10% for liquidity, 7.5% for moondao fee (out of 1_000_000_000)
+            percent: 89_743_590, // works out to 8.75% after 2.5% jb fee.
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // MoonDAO treasury
@@ -136,7 +154,15 @@ contract MissionCreator is Ownable, IERC721Receiver {
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
-            percent: 820_512_820, // works out to 80% after 2.5% fee (out of 1_000_000_000)
+            percent: 89_743_590, // works out to 8.75% after 2.5% jb fee.
+            projectId: 0, // Not used.
+            preferAddToBalance: false, // Not used, since projectId is 0.
+            beneficiary: payable(address(poolDeployer)), // MoonDAO treasury
+            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
+            hook: IJBSplitHook(address(0)) // Not used.
+        });
+        rulesetConfigurations[0].splitGroups[0].splits[2] = JBSplit({
+            percent: 820_512_820, // works out to 80% after 2.5% jb fee.
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: toPayable, // Team multisig
@@ -171,8 +197,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             percent: 200_000_000, // 20% out of 1_000_000_000, of the 50% reserved tokens = 10% of total tokens
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
-            // FIXME set up amm
-            beneficiary: payable(address(0)), // The beneficiary of the split. This is the address that will receive the project's tokens issued from the payment.
+            beneficiary: payable(address(poolDeployer)), // The beneficiary of the split. This is the address that will receive the project's tokens issued from the payment.
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
@@ -204,6 +229,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
         }
         moonDAOVesting.setToken(tokenAddress);
         teamVesting.setToken(tokenAddress);
+        poolDeployer.setToken(tokenAddress);
+
 
         jbProjects.safeTransferFrom(address(this), to, projectId);
 
@@ -212,6 +239,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         missionIdToPayHook[missionId] = address(launchPadPayHook);
         missionIdToTeamVesting[missionId] = address(teamVesting);
         missionIdToMoonDAOVesting[missionId] = address(moonDAOVesting);
+        missionIdToPoolDeployer[missionId] = address(poolDeployer);
         missionIdToFundingGoal[missionId] = fundingGoal;
         missionIdToTerminal[missionId] = address(terminal);
 
