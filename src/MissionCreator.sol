@@ -125,7 +125,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
         rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
-            splits: new JBSplit[](3) // Initialize as dynamic array
+            splits: new JBSplit[](2) // Initialize as dynamic array
         });
         rulesetConfigurations[0].splitGroups[0].splits[0] = JBSplit({
             percent: 179_487_180, // works out to 17.5% after 2.5% fee. 10% for liquidity, 7.5% for moondao fee (out of 1_000_000_000)
@@ -135,7 +135,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        rulesetConfigurations[0].splitGroups[0].splits[2] = JBSplit({
+        rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
             percent: 820_512_820, // works out to 80% after 2.5% fee (out of 1_000_000_000)
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
