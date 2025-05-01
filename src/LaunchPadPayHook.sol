@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { console2 } from "forge-std/Test.sol"; // remove before deploy
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-
 import {JBPayHookSpecification} from "@nana-core/structs/JBPayHookSpecification.sol";
 import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
 import {JBBeforePayRecordedContext} from "@nana-core/structs/JBBeforePayRecordedContext.sol";

@@ -15,11 +15,8 @@ import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
 import {JBSplitGroup} from "@nana-core/structs/JBSplitGroup.sol";
 import {JBSplit} from "@nana-core/structs/JBSplit.sol";
 import {JBFundAccessLimitGroup} from "@nana-core/structs/JBFundAccessLimitGroup.sol";
-import {JBCurrencyAmount} from "@nana-core/structs/JBCurrencyAmount.sol";
 import {JBAccountingContext} from "@nana-core/structs/JBAccountingContext.sol";
 import {JBTerminalConfig} from "@nana-core/structs/JBTerminalConfig.sol";
-import {IJBMultiTerminal} from "@nana-core/interfaces/IJBMultiTerminal.sol";
-import {IJBRulesets} from "@nana-core/interfaces/IJBRulesets.sol";
 import {IJBRulesetApprovalHook} from "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import {IJBSplitHook} from "@nana-core/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@nana-core/interfaces/IJBTerminal.sol";
@@ -121,29 +118,29 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 dataHook: address(launchPadPayHook),
                 metadata: 0 // No metadata is attached to this ruleset.
             }),
-            splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
+            splitGroups: new JBSplitGroup[](3), // Initialize as dynamic array
             fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
         //TODO: Configure split groups
         rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
-            splits: new JBSplit[](2) // Initialize as dynamic array
+            splits: new JBSplit[](3) // Initialize as dynamic array
         });
         rulesetConfigurations[0].splitGroups[0].splits[0] = JBSplit({
-            percent: 100_000_000, // 10%, out of 1_000_000_000
+            percent: 179_487_180, // works out to 17.5% after 2.5% fee. 10% for liquidity, 7.5% for moondao fee (out of 1_000_000_000)
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: moonDAOTreasuryPayable, // MoonDAO treasury
-            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
+            lockedUntil: type(uint48).max,
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
-            percent: 900_000_000, // 90%, out of 1_000_000_000
+        rulesetConfigurations[0].splitGroups[0].splits[2] = JBSplit({
+            percent: 820_512_820, // works out to 80% after 2.5% fee (out of 1_000_000_000)
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: toPayable, // Team multisig
-            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
+            lockedUntil: type(uint48).max,
             hook: IJBSplitHook(address(0)) // Not used.
         });
         rulesetConfigurations[0].splitGroups[1] = JBSplitGroup({
@@ -157,7 +154,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: payable(address(moonDAOVesting)), // The beneficiary of the split.
-            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
+            lockedUntil: type(uint48).max,
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // project token split
@@ -166,7 +163,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
             beneficiary: payable(address(teamVesting)), // The beneficiary of the payment made to the project's primary terminal. This is the address that will receive the project's tokens issued from the payment.
-            lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
+            lockedUntil: type(uint48).max,
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // amm token split
@@ -175,7 +172,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             // FIXME set up amm
-            beneficiary: payable(address(0)), // The beneficiary of the split. This is the address that will receive the project's tokens issued from the payment.
+            beneficiary: moonDAOTreasuryPayable, // The beneficiary of the split. This is the address that will receive the project's tokens issued from the payment.
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
