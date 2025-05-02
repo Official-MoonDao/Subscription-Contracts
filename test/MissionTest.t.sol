@@ -621,26 +621,72 @@ contract MissionTest is Test {
             "",
             new bytes(0)
         );
-        uint256 balanceAfter1 = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
-        assertEq(balanceAfter1, payAmount);
-        uint256 tokensAfter1 = jbTokens.totalBalanceOf(user1, projectId);
-        assertEq(tokensAfter1, 500 * 1e18);
-
-        // FIXME this needs to be called once the token is launched
-        jbController.sendReservedTokensToSplitsOf(projectId);
-        address tokenAddress = address(jbTokens.tokenOf(projectId));
-        //uint256 JB_ETH_CURRENCY = 1;
+        uint256 terminalBalance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        uint256 treasuryBalanceBefore = address(TREASURY).balance;
+        uint256 teamBalanceBefore = address(teamAddress).balance;
         uint256 payoutAmount = IJBMultiTerminal(address(terminal)).sendPayoutsOf(
             projectId,
             JBConstants.NATIVE_TOKEN,
-            1,
+            terminalBalance,
             uint32(uint160(JBConstants.NATIVE_TOKEN)),
             0
         );
-        console.log("payoutAmount", payoutAmount);
 
         PoolDeployer poolDeployer = PoolDeployer(payable(missionCreator.missionIdToPoolDeployer(missionId)));
-        assertEq(jbTokens.totalBalanceOf(address(poolDeployer), projectId), 100 * 1e18);
+        // JB splits have 7 decimals of precision, so check up to 6 decimals
+        assertApproxEqRel(address(poolDeployer).balance, terminalBalance / 10, 0.0000001e18);
+        assertApproxEqRel(address(TREASURY).balance - treasuryBalanceBefore, terminalBalance * 75/ 1000, 0.0000001e18);
+        assertApproxEqRel(teamAddress.balance - teamBalanceBefore, terminalBalance *80 / 100, 0.0000001e18);
+    }
+
+    function testCreateTeamProjectAMM() public {
+        vm.startPrank(user1);
+        uint256 deadline = block.timestamp + 2 days;
+        moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
+        uint256 missionId = missionCreator.createMission(
+           0,
+           teamAddress,
+           "",
+           10_000_000_000_000_000_000,
+           deadline,
+           true,
+           "TEST TOKEN",
+           "TEST",
+           "This is a test project"
+        );
+        uint256 projectId = missionCreator.missionIdToProjectId(missionId);
+
+        IJBTerminal terminal = jbDirectory.primaryTerminalOf(projectId, JBConstants.NATIVE_TOKEN);
+        uint256 balance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        assertEq(balance, 0);
+
+        // Lower payment that numbers work out nice, 500 contributor tokens, and 500 reserved tokens.
+        uint256 payAmount = 500_000_000_000_000_000;
+        terminal.pay{value: payAmount}(
+            projectId,
+            JBConstants.NATIVE_TOKEN,
+            0,
+            user1,
+            0,
+            "",
+            new bytes(0)
+        );
+        uint256 terminalBalance = jbTerminalStore.balanceOf(address(terminal), projectId, JBConstants.NATIVE_TOKEN);
+        jbController.sendReservedTokensToSplitsOf(projectId);
+        uint256 payoutAmount = IJBMultiTerminal(address(terminal)).sendPayoutsOf(
+            projectId,
+            JBConstants.NATIVE_TOKEN,
+            terminalBalance,
+            uint32(uint160(JBConstants.NATIVE_TOKEN)),
+            0
+        );
+
+        PoolDeployer poolDeployer = PoolDeployer(payable(missionCreator.missionIdToPoolDeployer(missionId)));
+        uint256 tokensPoolDeployer = jbTokens.totalBalanceOf(address(poolDeployer), projectId);
+        assertEq(tokensPoolDeployer, 100 * 1e18);
+        // JB splits have 7 decimals of precision, so check up to 6 decimals
+        assertApproxEqRel(address(poolDeployer).balance, terminalBalance / 10, 0.0000001e18);
+        poolDeployer.createAndAddLiquidity();
     }
 
     function testSetJBController() public {

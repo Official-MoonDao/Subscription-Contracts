@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "forge-std/console.sol";
 import {PositionManager} from "v4-periphery/src/PositionManager.sol";
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
@@ -32,11 +33,13 @@ contract PoolDeployer {
 
     PositionManager public posm;
     IERC20 public token;
-    address public hookAddress = address(0x45A0AA93f6972AA137086002527B2ECc1D1b8844);
+    // FIXME don't hardcode
+    address public hookAddress = address(0x3AA84C1124d83be2BdD5ab193E3F0A84946A8844);
 
     // the startingPrice is expressed as sqrtPriceX96: floor(sqrt(token / token0) * 2^96)
     // use 1000:1 as starting price based on jb price of 0.001 per token
-    uint160 public startingPrice = 2505414483750479251915866636288;
+    //uint160 public startingPrice = 2505414483750479251915866636288;
+    uint160 startingPrice = 79228162514264337593543950336; // floor(sqrt(1) * 2^96)
     int24  public tickLower     = -600;
     int24  public tickUpper     =  600;
 
@@ -62,9 +65,10 @@ contract PoolDeployer {
     }
 
     function createAndAddLiquidity() external {
-        uint256 amount0 = address(this).balance;
-        uint256 amount1 = token.balanceOf(address(this));
+        uint256 amount0 = address(this).balance - 1 wei;
+        uint256 amount1 = token.balanceOf(address(this)) - 1 wei;
         require(amount0 > 0 && amount1 > 0, "no funds to deploy");
+        console.log("amount0: %s, amount1: %s", amount0, amount1);
 
         // approvals for PERMIT2 & PositionManager
         token.approve(address(PERMIT2), type(uint256).max);
@@ -78,8 +82,8 @@ contract PoolDeployer {
             amount1
         );
 
-        uint256 amount0Max = amount0;
-        uint256 amount1Max = amount1;
+        uint256 amount0Max = amount0 + 1 wei;
+        uint256 amount1Max = amount1 + 1 wei;
 
 
         int24 tickSpacing = 60;
