@@ -53,6 +53,7 @@ contract MissionTest is Test {
 
     function setUp() public {
         vm.deal(user1, 100 ether);
+        vm.deal(user2, 100 ether);
 
         vm.startPrank(user1);
 
@@ -106,7 +107,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -146,7 +147,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            0,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -184,7 +185,7 @@ contract MissionTest is Test {
            user1,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -218,7 +219,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -254,7 +255,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -285,14 +286,13 @@ contract MissionTest is Test {
 
     function testCreateTeamProjectCashout() public {
         vm.startPrank(user1);
-        uint256 deadline = block.timestamp + 2 days;
         moonDAOTeamCreator.createMoonDAOTeam{value: 0.555 ether}("", "", "","name", "bio", "image", "twitter", "communications", "website", "view", "formId", new address[](0));
         uint256 missionId = missionCreator.createMission(
            0,
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -345,7 +345,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -401,6 +401,7 @@ contract MissionTest is Test {
             0,
             payable(user1),
             bytes(""));
+        console.log("user1CashOutAmount", user1CashOutAmount);
         uint256 user1BalanceAfter = address(user1).balance;
         assertEq(user1CashOutAmount, payAmount);
         assertEq(user1BalanceAfter - user1BalanceBefore, payAmount);
@@ -432,7 +433,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -479,7 +480,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -527,7 +528,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
@@ -598,7 +599,7 @@ contract MissionTest is Test {
            teamAddress,
            "",
            10_000_000_000_000_000_000,
-           0,
+           block.timestamp + 28 days,
            true,
            "TEST TOKEN",
            "TEST",
