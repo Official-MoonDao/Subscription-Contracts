@@ -1,2 +1,2 @@
-forge install uniswap/v4-core
-forge install uniswap/v4-periphery
+forge install uniswap/v4-core@main
+forge install uniswap/v4-periphery@main
