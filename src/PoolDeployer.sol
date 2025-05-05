@@ -10,7 +10,6 @@ import {Actions} from "v4-periphery/src/libraries/Actions.sol";
 import {LiquidityAmounts} from "v4-core/test/utils/LiquidityAmounts.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-//import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol";
 
 interface IAllowanceTransfer {
     function approve(
