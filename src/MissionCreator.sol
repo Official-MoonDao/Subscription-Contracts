@@ -12,6 +12,7 @@ import {IJBController} from "@nana-core/interfaces/IJBController.sol";
 import {IJBProjects} from "@nana-core/interfaces/IJBProjects.sol";
 import {JBRulesetConfig} from "@nana-core/structs/JBRulesetConfig.sol";
 import {LaunchPadPayHook} from "./LaunchPadPayHook.sol";
+import {LaunchPadApprovalHook} from "./LaunchPadApprovalHook.sol";
 import {JBRulesetMetadata} from "@nana-core/structs/JBRulesetMetadata.sol";
 import {JBSplitGroup} from "@nana-core/structs/JBSplitGroup.sol";
 import {JBSplit} from "@nana-core/structs/JBSplit.sol";
@@ -96,8 +97,40 @@ contract MissionCreator is Ownable, IERC721Receiver {
             deadline = block.timestamp + 28 days;
         }
         LaunchPadPayHook launchPadPayHook = new LaunchPadPayHook(fundingGoal, deadline, jbTerminalStoreAddress, jbRulesetsAddress, to);
-        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](1);
+        LaunchPadApprovalHook launchPadApprovalHook = new LaunchPadApprovalHook(fundingGoal, deadline, jbTerminalStoreAddress, address(terminal));
+        JBRulesetConfig[] memory rulesetConfigurations = new JBRulesetConfig[](2);
+        JBSplitGroup[] memory splitGroups = new JBSplitGroup[](2);
         rulesetConfigurations[0] = JBRulesetConfig({
+            mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
+            duration: 0, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
+            weight: 2_000_000_000_000_000_000_000, // Standard rate is 2,000 tokens issued per unit of `baseCurrency` set below, 1,000 going to the funder and 1,000 going to the project. Note that this will be modified by the payhook based on current amount of funds raised, min funding required, and funding goal.
+            weightCutPercent: 0, // 0% weight cut. If the `duration` property above is set to a non-zero value, the `weightCutPercent` property will be used to determine how much of the weight is cut from this ruleset to the next cycle.
+            approvalHook: IJBRulesetApprovalHook(address(launchPadApprovalHook)), // No approval hook contract is attached to this ruleset, meaning new rulesets can be queued at any time and will take effect as soon as possible given the current ruleset's `duration`.
+            metadata: JBRulesetMetadata({
+                reservedPercent: 5_000, // 50% of tokens are reserved, to be split according to the `splitGroups` property below.
+                cashOutTaxRate: 0, // 0% tax on cashouts.
+                baseCurrency: 61166, // ETH currency. Together with the `weight` property, this determines how many tokens are issued per ETH received. If the project receives a different token, say USDC, a price feed will determine the ETH value of the USDC at the time of the transaction in order to determine how many tokens are issued per USDC received.
+                pausePay: false, // Payouts are not paused.
+                pauseCreditTransfers: false, // Credit transfers are not paused.
+                allowOwnerMinting: false, // The project owner cannot mint new tokens.
+                allowSetCustomToken: false, // The project cannot set a custom token.
+                allowTerminalMigration: false, // The project cannot move funds between terminals.
+                allowSetTerminals: false, // The project cannot set new terminals.
+                allowSetController: false, // The project cannot set a new controller.
+                allowAddAccountingContext: false, // The project cannot add new accounting contexts to its terminals.
+                allowAddPriceFeed: false, // The project cannot add new price feeds.
+                ownerMustSendPayouts: false, // Anyone can send this project's payouts to the splits specified in the `splitGroups` property below.
+                holdFees: false, // Fees are not held.
+                useTotalSurplusForCashOuts: false, // Cash outs are made from each terminal independently.
+                useDataHookForPay: true,
+                useDataHookForCashOut: true,
+                dataHook: address(launchPadPayHook),
+                metadata: 0 // No metadata is attached to this ruleset.
+            }),
+            splitGroups: splitGroups, // Initialize as dynamic array
+            fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
+        });
+        rulesetConfigurations[1] = JBRulesetConfig({
             mustStartAtOrAfter: 0, // A 0 timestamp means the ruleset will start right away, or as soon as possible if there are already other rulesets queued.
             duration: 0, // A duration of 0 means the ruleset will last indefinitely until the next ruleset is queued. Any non-zero value would be the number of seconds this ruleset will last before the next ruleset is queued. If no new rulesets are queued, this ruleset will cycle over to another period with the same duration.
             weight: 2_000_000_000_000_000_000_000, // Standard rate is 2,000 tokens issued per unit of `baseCurrency` set below, 1,000 going to the funder and 1,000 going to the project. Note that this will be modified by the payhook based on current amount of funds raised, min funding required, and funding goal.
@@ -124,10 +157,15 @@ contract MissionCreator is Ownable, IERC721Receiver {
                 dataHook: address(launchPadPayHook),
                 metadata: 0 // No metadata is attached to this ruleset.
             }),
-            splitGroups: new JBSplitGroup[](2), // Initialize as dynamic array
+            splitGroups: splitGroups, // Initialize as dynamic array
             fundAccessLimitGroups: new JBFundAccessLimitGroup[](1) // Initialize as dynamic array
         });
 
+        JBCurrencyAmount[] memory surplusAllowances = new JBCurrencyAmount[](1);
+        surplusAllowances[0] = JBCurrencyAmount({
+            amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH
+            currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
+        });
         JBCurrencyAmount[] memory payoutLimits = new JBCurrencyAmount[](1);
         payoutLimits[0] = JBCurrencyAmount({
             amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH
@@ -136,16 +174,22 @@ contract MissionCreator is Ownable, IERC721Receiver {
         rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
             terminal: address(terminal),
             token: JBConstants.NATIVE_TOKEN,
+            payoutLimits: new JBCurrencyAmount[](0),
+            surplusAllowances: surplusAllowances
+        });
+        rulesetConfigurations[1].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({
+            terminal: address(terminal),
+            token: JBConstants.NATIVE_TOKEN,
             payoutLimits: payoutLimits,
             surplusAllowances: new JBCurrencyAmount[](0)
         });
         //TODO: Configure split groups
-        rulesetConfigurations[0].splitGroups[0] = JBSplitGroup({
+        splitGroups[0] = JBSplitGroup({
             groupId: 0xEEEe, // This is the group ID of splits for ETH payouts. Ensure this is a uint256
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
             splits: new JBSplit[](3) // Initialize as dynamic array
         });
-        rulesetConfigurations[0].splitGroups[0].splits[0] = JBSplit({
+        splitGroups[0].splits[0] = JBSplit({
             percent: 76_923_076, // works out to 7.5% after 2.5% jb fee.
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
@@ -153,7 +197,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        rulesetConfigurations[0].splitGroups[0].splits[1] = JBSplit({
+        splitGroups[0].splits[1] = JBSplit({
             percent: 102_564_102, // works out to 10% after 2.5% jb fee.
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
@@ -161,7 +205,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        rulesetConfigurations[0].splitGroups[0].splits[2] = JBSplit({
+        splitGroups[0].splits[2] = JBSplit({
             percent: 820_512_820, // works out to 80% after 2.5% jb fee.
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
@@ -169,14 +213,14 @@ contract MissionCreator is Ownable, IERC721Receiver {
             lockedUntil: type(uint48).max, // Use max value for lock, ~8,000 years. Project owner won't be able to change the split until the 11th millennium.
             hook: IJBSplitHook(address(0)) // Not used.
         });
-        rulesetConfigurations[0].splitGroups[1] = JBSplitGroup({
+        splitGroups[1] = JBSplitGroup({
             groupId: 1, // This is the group ID of splits for reserved token distribution.
             // Any leftover split percent amount after all with the group are taken into account will go to the project owner.
             splits: new JBSplit[](3) // Initialize as dynamic array
         });
         // moondao token split
-        rulesetConfigurations[0].splitGroups[1].splits[0] = JBSplit({
-            percent: 200_000_000, // 20% out of 1_000_000_000, of the 50% reserved tokens = 10% of total tokens
+        splitGroups[1].splits[0] = JBSplit({
+            percent: 300_000_000, // 30% out of 1_000_000_000, of the 50% reserved tokens = 15% of total tokens
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: payable(address(moonDAOVesting)), // The beneficiary of the split.
@@ -184,7 +228,7 @@ contract MissionCreator is Ownable, IERC721Receiver {
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // project token split
-        rulesetConfigurations[0].splitGroups[1].splits[1] = JBSplit({
+        splitGroups[1].splits[1] = JBSplit({
             percent: 600_000_000, // 60% out of 1_000_000_000, of the 50% reserved tokens = 30% of total tokens
             projectId: 0, // The projectId of the project to send the split to.
             preferAddToBalance: false, // The payment will go to the `pay` function of the project's primary terminal, not the `addToBalanceOf` function.
@@ -193,8 +237,8 @@ contract MissionCreator is Ownable, IERC721Receiver {
             hook: IJBSplitHook(address(0)) // Not used.
         });
         // amm token split
-        rulesetConfigurations[0].splitGroups[1].splits[2] = JBSplit({
-            percent: 200_000_000, // 20% out of 1_000_000_000, of the 50% reserved tokens = 10% of total tokens
+        splitGroups[1].splits[2] = JBSplit({
+            percent: 100_000_000, // 20% out of 1_000_000_000, of the 50% reserved tokens = 10% of total tokens
             projectId: 0, // Not used.
             preferAddToBalance: false, // Not used, since projectId is 0.
             beneficiary: payable(address(poolDeployer)), // The beneficiary of the split. This is the address that will receive the project's tokens issued from the payment.

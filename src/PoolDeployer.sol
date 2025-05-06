@@ -67,7 +67,6 @@ contract PoolDeployer {
         uint256 amount0 = address(this).balance - 1 wei;
         uint256 amount1 = token.balanceOf(address(this)) - 1 wei;
         require(amount0 > 0 && amount1 > 0, "no funds to deploy");
-        console.log("amount0: %s, amount1: %s", amount0, amount1);
 
         // approvals for PERMIT2 & PositionManager
         token.approve(address(PERMIT2), type(uint256).max);

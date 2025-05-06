@@ -12,9 +12,9 @@ import {IJBRulesetDataHook} from "@nana-core/interfaces/IJBRulesetDataHook.sol";
 import { JBConstants } from "@nana-core/libraries/JBConstants.sol";
 
 
-// LaunchPadPayHook implements the common logic:
-//   • Storing minFundingRequired, fundingGoal and deadline.
-//   • Holding references to the IJBTerminalStore contract.
+// LaunchPadPayHook
+//   • Stores minFundingRequired, fundingGoal and deadline.
+//   • Holdes references to the IJBTerminalStore contract.
 //   • A helper function (_totalFunding) to read total funding.
 //   • An Ownable toggle (setFundingTurnedOff) for the fundingTurnedOff flag.
 //   • The beforePayRecordedWith function manipulates the weight to change number
