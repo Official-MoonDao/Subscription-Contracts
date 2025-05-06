@@ -168,12 +168,12 @@ contract MissionCreator is Ownable, IERC721Receiver {
 
         JBCurrencyAmount[] memory surplusAllowances = new JBCurrencyAmount[](1);
         surplusAllowances[0] = JBCurrencyAmount({
-            amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH
+            amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH, functionally unlimited
             currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
         });
         JBCurrencyAmount[] memory payoutLimits = new JBCurrencyAmount[](1);
         payoutLimits[0] = JBCurrencyAmount({
-            amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH
+            amount: uint224(128_000_000 * 10 ** 18), // 128 million ETH, functionally unlimited
             currency: uint32(uint160(JBConstants.NATIVE_TOKEN))
         });
         rulesetConfigurations[0].fundAccessLimitGroups[0] = JBFundAccessLimitGroup({

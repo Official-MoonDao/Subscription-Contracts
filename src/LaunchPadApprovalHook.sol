@@ -31,7 +31,7 @@ contract LaunchPadApprovalHook is IJBRulesetApprovalHook {
 
     function approvalStatusOf(
         uint256 projectId,
-        uint256 /* rulesetId */,
+        uint256,
         uint256 start
     ) external view override returns (JBApprovalStatus) {
         uint256 currentFunding = _totalFunding(terminal, projectId);

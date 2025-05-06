@@ -39,8 +39,8 @@ contract PoolDeployer {
     // use 1000:1 as starting price based on jb price of 0.001 per token
     //uint160 public startingPrice = 2505414483750479251915866636288;
     uint160 startingPrice = 79228162514264337593543950336; // floor(sqrt(1) * 2^96)
-    int24  public tickLower     = -600;
-    int24  public tickUpper     =  600;
+
+    // set tickLower and tickUpper to give liquidity at all prices
 
     constructor() {
         POSITION_MANAGERS[MAINNET] = 0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e;
@@ -72,6 +72,9 @@ contract PoolDeployer {
         token.approve(address(PERMIT2), type(uint256).max);
         PERMIT2.approve(address(token), address(posm), type(uint160).max, type(uint48).max);
 
+        int24 tickSpacing = 100;
+        int24 tickLower = TickMath.minUsableTick(tickSpacing);
+        int24 tickUpper = TickMath.maxUsableTick(tickSpacing);
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
             startingPrice,
             TickMath.getSqrtPriceAtTick(tickLower),
@@ -84,7 +87,6 @@ contract PoolDeployer {
         uint256 amount1Max = amount1 + 1 wei;
 
 
-        int24 tickSpacing = 60;
         PoolKey memory poolKey = PoolKey({
             currency0: CurrencyLibrary.ADDRESS_ZERO,
             currency1: Currency.wrap(address(token)),
