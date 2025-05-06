@@ -25,6 +25,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
+            .git
             node_modules
             lib
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
