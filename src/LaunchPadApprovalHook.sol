@@ -6,16 +6,13 @@ import "@nana-core/interfaces/IJBRulesetApprovalHook.sol";
 import "@nana-core/interfaces/IJBTerminalStore.sol";
 import "@nana-core/libraries/JBConstants.sol";
 
+// Hook to enable payouts after a funding goal is reached and a deadline is passed.
 contract LaunchPadApprovalHook is IJBRulesetApprovalHook {
     uint256 public immutable fundingGoal;
     uint256 public immutable deadline; // how long after start we wait
     IJBTerminalStore public immutable jbTerminalStore;
     address public immutable terminal;
 
-    /// @param _jbTerminalStoreAddress The Juicebox terminal store
-    /// @param _terminal The specific terminal to pull balances from
-    /// @param _fundingGoal Minimum amount of native tokens to allow approval
-    /// @param _deadline Time window (in seconds) after `start` before auto-approval
     constructor(
         uint256 _fundingGoal,
         uint256 _deadline,
@@ -28,14 +25,10 @@ contract LaunchPadApprovalHook is IJBRulesetApprovalHook {
         terminal = _terminal;
     }
 
-    /// @notice How long after the ruleset’s `start` we’ll wait before approving
     function DURATION() external view override returns (uint256) {
         return 0;
     }
 
-    /// @notice Called by the Juicebox contracts to see if the next ruleset gets the green light
-    /// @param projectId The project whose queue is being advanced
-    /// @param start The timestamp when that ruleset would begin
     function approvalStatusOf(
         uint256 projectId,
         uint256 /* rulesetId */,
@@ -49,7 +42,6 @@ contract LaunchPadApprovalHook is IJBRulesetApprovalHook {
         }
     }
 
-    /// @dev Juicebox and ERC165 interface support
     function supportsInterface(bytes4 interfaceId)
         external
         pure
@@ -61,7 +53,6 @@ contract LaunchPadApprovalHook is IJBRulesetApprovalHook {
             interfaceId == type(IERC165).interfaceId;
     }
 
-    /// @dev Pulls the project’s balance from the Juicebox terminal store
     function _totalFunding(address _terminal, uint256 projectId)
         internal
         view
@@ -74,4 +65,3 @@ contract LaunchPadApprovalHook is IJBRulesetApprovalHook {
         );
     }
 }
-
